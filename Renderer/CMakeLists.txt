@@ -29,7 +29,16 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/nothings/stb 
 )
 
-FetchContent_MakeAvailable(glfw imgui assimp stb)
+FetchContent_Declare(
+	easyprofiler
+	GIT_REPOSITORY https://github.com/yse/easy_profiler 
+	GIT_TAG v2.1.0
+)
+# Disable EasyProfiler GUI and Sample builds by default
+#set(EASY_PROFILER_NO_GUI ON CACHE BOOL "")
+set(EASY_PROFILER_NO_SAMPLES ON CACHE BOOL "")
+
+FetchContent_MakeAvailable(glfw imgui assimp stb easyprofiler)
 
 # Manually Build ImGui
 add_library(imgui 
@@ -48,6 +57,7 @@ target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
 set(VKRENDERER_DEBUG_DEFINITIONS 
     DEBUG 
     _DEBUG
+	ENABLE_PROFILING
 )
 
 add_library("VkRenderer" STATIC 
@@ -56,7 +66,7 @@ add_library("VkRenderer" STATIC
  "include/Types.h" "include/Window.h" "src/Window.cpp" "include/Logger.h" "src/Logger.cpp" "include/Timer.h" "src/Timer.cpp")
 
 # Link our dependencies
-target_link_libraries("VkRenderer" Vulkan::Vulkan Threads::Threads glfw imgui assimp)
+target_link_libraries("VkRenderer" Vulkan::Vulkan Threads::Threads glfw imgui assimp easy_profiler)
 target_include_directories("VkRenderer" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR})
 
 target_compile_definitions("VkRenderer" PRIVATE $<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>)

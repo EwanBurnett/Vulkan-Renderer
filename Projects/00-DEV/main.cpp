@@ -3,13 +3,17 @@
 #include <Timer.h>
 #include <Thread>
 #include <cstdio> 
+#include <easy/profiler.h>
 
 constexpr uint32_t WINDOW_WIDTH = 600; 
 constexpr uint32_t WINDOW_HEIGHT = 400; 
 
 int main() {
     glfwInit(); 
+    EASY_MAIN_THREAD; 
+    EASY_PROFILER_ENABLE; 
 
+    EASY_BLOCK("Initialization")
     VKR::Window window; 
     window.Create("Vulkan Renderer", WINDOW_WIDTH, WINDOW_HEIGHT);
     window.Show(); 
@@ -24,8 +28,10 @@ int main() {
     double runtime = 0; 
     uint64_t fps = 0; 
     double dtms = 0.0; 
+    EASY_END_BLOCK;
 
     while (window.PollEvents()) {
+        EASY_BLOCK("Main Loop", profiler::colors::SkyBlue);
         timer.Tick(); 
         dtms = timer.DeltaTime(); 
         fps = 1.0 / dtms;
@@ -40,6 +46,8 @@ int main() {
     window.Destroy(); 
 
     glfwTerminate(); 
+
+    profiler::dumpBlocksToFile("PROFILE_RESULT.prof");
 
     return 0; 
 }
