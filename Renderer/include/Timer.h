@@ -1,5 +1,5 @@
-#ifndef __DEWDROP_TIMER_H
-#define __DEWDROP_TIMER_H
+#ifndef __VKRENDERER_TIMER_H
+#define __VKRENDERER_TIMER_H
 /**
 *   @file Timer.h
 *   @brief Performance Timing Utility

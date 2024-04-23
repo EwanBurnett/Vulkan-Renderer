@@ -34,11 +34,20 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/yse/easy_profiler 
 	GIT_TAG v2.1.0
 )
+
 # Disable EasyProfiler GUI and Sample builds by default
-#set(EASY_PROFILER_NO_GUI ON CACHE BOOL "")
+set(EASY_PROFILER_NO_GUI ON CACHE BOOL "")
 set(EASY_PROFILER_NO_SAMPLES ON CACHE BOOL "")
 
-FetchContent_MakeAvailable(glfw imgui assimp stb easyprofiler)
+FetchContent_Declare(
+	enkits
+	GIT_REPOSITORY https://github.com/dougbinks/enkiTS
+	GIT_TAG v1.11
+)
+# Disable EnkiTS Examples
+set(ENKITS_BUILD_EXAMPLES OFF CACHE BOOL "")
+
+FetchContent_MakeAvailable(glfw imgui assimp stb easyprofiler enkits)
 
 # Manually Build ImGui
 add_library(imgui 
@@ -63,10 +72,17 @@ set(VKRENDERER_DEBUG_DEFINITIONS
 add_library("VkRenderer" STATIC 
    "include/Renderer.h"
    "src/Renderer.cpp"
- "include/Types.h" "include/Window.h" "src/Window.cpp" "include/Logger.h" "src/Logger.cpp" "include/Timer.h" "src/Timer.cpp")
+   "include/Types.h" 
+   "include/Window.h" 
+   "src/Window.cpp" 
+   "include/Logger.h" 
+   "src/Logger.cpp" 
+   "include/Timer.h" 
+   "src/Timer.cpp"
+ "include/Random.h" "src/Random.cpp" "include/Maths.h" "include/Maths/Vector2.h" "include/Maths/Vector3.h" "include/Maths/Vector4.h" "include/Maths/Matrix.h")
 
 # Link our dependencies
-target_link_libraries("VkRenderer" Vulkan::Vulkan Threads::Threads glfw imgui assimp easy_profiler)
+target_link_libraries("VkRenderer" Vulkan::Vulkan Threads::Threads glfw imgui assimp easy_profiler enkiTS)
 target_include_directories("VkRenderer" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR})
 
 target_compile_definitions("VkRenderer" PRIVATE $<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>)
