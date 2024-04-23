@@ -53,7 +53,7 @@ set(VKRENDERER_DEBUG_DEFINITIONS
 add_library("VkRenderer" STATIC 
    "include/Renderer.h"
    "src/Renderer.cpp"
- "include/Types.h" "include/Window.h" "src/Window.cpp" "include/Logger.h" "src/Logger.cpp")
+ "include/Types.h" "include/Window.h" "src/Window.cpp" "include/Logger.h" "src/Logger.cpp" "include/Timer.h" "src/Timer.cpp")
 
 # Link our dependencies
 target_link_libraries("VkRenderer" Vulkan::Vulkan Threads::Threads glfw imgui assimp)

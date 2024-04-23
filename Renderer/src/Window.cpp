@@ -24,6 +24,7 @@ VKR::Status VKR::Window::Create(const char* title, const uint32_t width, const u
 VKR::Status VKR::Window::Destroy()
 {
     glfwDestroyWindow(m_Handle);
+    m_Handle = nullptr;     //Invalidate the handle
     return SUCCESS; 
 }
 

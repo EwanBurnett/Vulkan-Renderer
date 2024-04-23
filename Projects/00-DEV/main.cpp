@@ -1,5 +1,7 @@
 #include <Renderer.h>
 #include <Window.h>
+#include <Timer.h>
+#include <Thread>
 #include <cstdio> 
 
 constexpr uint32_t WINDOW_WIDTH = 600; 
@@ -15,13 +17,27 @@ int main() {
     VKR::Renderer renderer; 
     renderer.Init(); 
 
+    VKR::Timer timer; 
+    timer.Start(); 
+
     uint64_t frameIdx = 0;  //Keep track of the current frame. 
+    double runtime = 0; 
+    uint64_t fps = 0; 
+    double dtms = 0.0; 
+
     while (window.PollEvents()) {
-        printf("\rFrame %d", frameIdx++);
+        timer.Tick(); 
+        dtms = timer.DeltaTime(); 
+        fps = 1.0 / dtms;
+        runtime = timer.Duration(); 
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(7));  //Sleep to simulate some work
+        printf("\r                                                          "); //Clear the current line for consistent output
+        printf("\rFrame %d\tdtms: %04fms\t%d fps\truntime: %fs", frameIdx++, dtms, fps, runtime);
     }
 
-
     renderer.Shutdown(); 
+    window.Destroy(); 
 
     glfwTerminate(); 
 
