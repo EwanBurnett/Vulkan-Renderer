@@ -13,7 +13,7 @@ constexpr uint32_t WINDOW_HEIGHT = 400;
 int main() {
     glfwInit(); 
     EASY_MAIN_THREAD; 
-    EASY_PROFILER_ENABLE; 
+    EASY_PROFILER_ENABLE; //TODO: Debug Switch
 
     EASY_BLOCK("App Initialization")
 
@@ -34,6 +34,10 @@ int main() {
 
     EASY_END_BLOCK;
 
+
+    VKR::Math::Matrix4x4<> x = VKR::Math::Matrix4x4<>::XRotationFromDegrees(30); 
+    VKR::Math::Matrix4x4<> y = VKR::Math::Matrix4x4<>::YRotationFromDegrees(30); 
+    VKR::Math::Matrix4x4<> z = VKR::Math::Matrix4x4<>::ZRotationFromDegrees(30); 
 
     while (window.PollEvents()) {
         EASY_BLOCK("Main Loop", profiler::colors::SkyBlue);

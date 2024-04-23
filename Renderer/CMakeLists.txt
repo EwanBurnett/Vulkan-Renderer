@@ -3,6 +3,8 @@
 
 project("VkRenderer")
 
+set(CMAKE_CXX_STANDARD 17) 
+
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -62,6 +64,14 @@ add_library(imgui
 target_link_libraries(imgui glfw)
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
 
+set(VKRENDERER_DEFINITIONS
+	
+)
+
+if(WIN32)
+	set(VKRENDERER_DEFINITIONS ${VKRENDERER_DEFINITIONS} VKR_WIN32)
+endif()
+
 # These macros will be defined in Debug builds. 
 set(VKRENDERER_DEBUG_DEFINITIONS 
     DEBUG 
@@ -85,4 +95,4 @@ add_library("VkRenderer" STATIC
 target_link_libraries("VkRenderer" Vulkan::Vulkan Threads::Threads glfw imgui assimp easy_profiler enkiTS)
 target_include_directories("VkRenderer" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR})
 
-target_compile_definitions("VkRenderer" PRIVATE $<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>)
+target_compile_definitions("VkRenderer" PRIVATE ${VKRENDERER_DEFINITIONS} $<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>)

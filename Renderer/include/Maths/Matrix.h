@@ -15,7 +15,7 @@ namespace VKR {
         template<typename T = float>
         struct Matrix4x4 {
             Matrix4x4() {
-                //*this = Matrix4x4::Identity(); 
+
             }
 
             union {
@@ -56,6 +56,58 @@ namespace VKR {
 
                 return mat;
             }
+
+            inline static constexpr Matrix4x4& XRotationFromDegrees(const T degrees) {
+                Matrix4x4 mat = Matrix4x4::Identity(); 
+
+                const double radians = DegToRad(degrees); 
+
+                mat.arr[5] = cos(radians); 
+                mat.arr[6] = sin(radians); 
+                mat.arr[9] = -mat.arr[6];
+                mat.arr[10] = mat.arr[5]; 
+
+                return mat; 
+            }
+
+            inline static constexpr Matrix4x4& YRotationFromDegrees(const T degrees) {
+                Matrix4x4 mat = Matrix4x4::Identity(); 
+
+                const double radians = DegToRad(degrees); 
+
+                mat.arr[0] = cos(radians); 
+                mat.arr[2] = -sin(radians); 
+                mat.arr[8] = -mat.arr[2];
+                mat.arr[10] = mat.arr[0]; 
+
+                return mat; 
+            }
+
+
+            inline static constexpr Matrix4x4& ZRotationFromDegrees(const T degrees) {
+                Matrix4x4 mat = Matrix4x4::Identity(); 
+
+                const double radians = DegToRad(degrees); 
+
+                mat.arr[0] = cos(radians); 
+                mat.arr[1] = sin(radians); 
+                mat.arr[4] = -mat.arr[1];
+                mat.arr[5] = mat.arr[0]; 
+
+                return mat; 
+            }
+
+            inline static constexpr Matrix4x4& Scaling(const Vector3<T> scaling) {
+                Matrix4x4 mat = Matrix4x4::Identity(); 
+
+                mat.arr[0] = scaling.x; 
+                mat.arr[5] = scaling.y; 
+                mat.arr[10] = scaling.z; 
+
+                return mat; 
+            }
+
+
         };
 
 
