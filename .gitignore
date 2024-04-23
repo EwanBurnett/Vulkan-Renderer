@@ -1,0 +1,10 @@
+# Gitignore for Vulkan Renderer 
+# Ewan Burnett - 2024
+
+# Ignore build files
+[Bb][Uu][Ii][Ll][Dd]/
+[Bb][Ii][Nn]/
+[Oo][Uu][Tt]/
+
+# Ignore IDE generated files
+.vs/
