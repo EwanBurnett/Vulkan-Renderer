@@ -1,7 +1,9 @@
 #include "../include/Window.h"
+#include "../include/Logger.h"
 
 VKR::Status VKR::Window::Create(const char* title, const uint32_t width, const uint32_t height)
 {
+    Log::Message("[VKR]\tCreating Window \"%s\" (%dx%d)\n", title, width, height); 
     m_Width = width;
     m_Height = height;
     m_Title = title;
@@ -11,8 +13,10 @@ VKR::Status VKR::Window::Create(const char* title, const uint32_t width, const u
     m_Handle = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
     if (m_Handle == nullptr) {
+        Log::Error(__FILE__, __LINE__, __PRETTY_FUNCTION__, "[VKR]\tFailed to create GLFW Window! Was glfwInit() called?\n");
         return FAILED;
     }
+    Log::Debug("[VKR]\tInternal Window Handle: %08x\n", m_Handle);
 
     return SUCCESS; 
 }
