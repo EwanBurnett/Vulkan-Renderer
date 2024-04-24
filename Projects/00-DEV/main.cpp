@@ -1,10 +1,13 @@
-#include <Renderer.h>
+#include <VKR.h>
 #include <Window.h>
 #include <Timer.h>
 #include <Maths.h>
 
+#include <Vulkan/VkContext.h>
+
 #include <vector> 
 #include <Thread>
+
 
 #include <cstdio> 
 #include <easy/profiler.h>
@@ -12,20 +15,20 @@
 constexpr uint32_t WINDOW_WIDTH = 600;
 constexpr uint32_t WINDOW_HEIGHT = 400;
 
+void InitVulkan(VKR::VkContext& context);
+void ShutdownVulkan(VKR::VkContext& context);
+
 int main() {
-    glfwInit();
-    EASY_MAIN_THREAD;
-    EASY_PROFILER_ENABLE; //TODO: Debug Switch
-    profiler::startListen();
-
+   
     EASY_BLOCK("App Initialization");
-
+    VKR::Init(); 
+    
+    VKR::VkContext context; 
     VKR::Window window;
     window.Create("Vulkan Renderer", WINDOW_WIDTH, WINDOW_HEIGHT);
     window.Show();
 
-    VKR::Renderer renderer;
-    renderer.Init();
+    InitVulkan(context); 
 
     VKR::Timer timer;
     timer.Start();
@@ -79,15 +82,64 @@ int main() {
 
     printf("\n");   //Print a newline for correct logging
     window.Hide();
-    renderer.Shutdown();
     window.Destroy();
 
-    glfwTerminate();
+    ShutdownVulkan(context); 
 
     EASY_END_BLOCK;
 
-    profiler::stopListen();
-    //profiler::dumpBlocksToFile("PROFILE_RESULT.prof");
-
+    VKR::Shutdown(); 
+   
     return 0;
 }
+
+//--------------------------
+
+void InitVulkan(VKR::VkContext& context) {
+
+    std::vector<const char*> instanceLayers = {
+#if DEBUG
+       "VK_LAYER_KHRONOS_validation",
+#endif
+    };
+
+    std::vector<const char*> instanceExtensions = {
+#if DEBUG
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+#endif
+    };
+    {
+        uint32_t optExtCount = 0;
+        auto ext = glfwGetRequiredInstanceExtensions(&optExtCount);
+        for (int i = 0; i < optExtCount; i++) {
+            instanceExtensions.push_back(ext[i]);
+        }
+    }
+
+
+    std::vector<const char*> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+        VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME
+    };
+
+
+    VK_CHECK(context.CreateInstance(instanceLayers.size(), instanceLayers.data(), instanceExtensions.size(), instanceExtensions.data(), nullptr));
+#if DEBUG
+    VK_CHECK(context.CreateDebugLogger());
+    VK_CHECK(context.CreateDebugReporter());
+#endif
+}
+
+
+
+void ShutdownVulkan(VKR::VkContext& context) {
+#ifdef DEBUG
+    context.DestroyDebugReporter(); 
+    context.DestroyDebugLogger(); 
+#endif
+
+    context.DestroyInstance(); 
+}
+

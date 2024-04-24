@@ -65,7 +65,7 @@ target_link_libraries(imgui glfw)
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
 
 set(VKRENDERER_DEFINITIONS
-	
+	ENABLE_PROFILING=1
 )
 
 if(WIN32)
@@ -76,12 +76,11 @@ endif()
 set(VKRENDERER_DEBUG_DEFINITIONS 
     DEBUG 
     _DEBUG
-	ENABLE_PROFILING
 )
 
 add_library("VkRenderer" STATIC 
-   "include/Renderer.h"
-   "src/Renderer.cpp"
+   "include/VKR.h"
+   "src/VKR.cpp"
    "include/Types.h" 
    "include/Window.h" 
    "src/Window.cpp" 
@@ -89,10 +88,11 @@ add_library("VkRenderer" STATIC
    "src/Logger.cpp" 
    "include/Timer.h" 
    "src/Timer.cpp"
- "include/Random.h" "src/Random.cpp" "include/Maths.h" "include/Maths/Vector2.h" "include/Maths/Vector3.h" "include/Maths/Vector4.h" "include/Maths/Matrix.h")
+ "include/Random.h" "src/Random.cpp" "include/Maths.h" "include/Maths/Vector2.h" "include/Maths/Vector3.h" "include/Maths/Vector4.h" "include/Maths/Matrix.h" "include/Vulkan/VkCommon.h" "src/Vulkan/VkCommon.cpp" "include/Vulkan/VkContext.h" "src/Vulkan/VkContext.cpp" "include/Vulkan/VkInit.h" "src/Vulkan/VkInit.cpp" "include/Vulkan/VkHelpers.h" "src/Vulkan/VkHelpers.cpp")
 
 # Link our dependencies
 target_link_libraries("VkRenderer" Vulkan::Vulkan Threads::Threads glfw imgui assimp easy_profiler enkiTS)
 target_include_directories("VkRenderer" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR})
 
-target_compile_definitions("VkRenderer" PRIVATE ${VKRENDERER_DEFINITIONS} $<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>)
+target_compile_definitions("VkRenderer" PUBLIC ${VKRENDERER_DEFINITIONS})
+add_compile_definitions("$<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>")

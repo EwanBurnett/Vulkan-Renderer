@@ -23,9 +23,9 @@ namespace VKR {
         using FileTime == __FILETIME;
 #endif
 
-        using FileHandle = FILE *
+        using FileHandle = FILE*;
 
-            constexpr uint32_t MAX_FILEPATH_LENGTH = 512;
+        constexpr uint32_t MAX_FILEPATH_LENGTH = 512;
 
         struct Directory {
             char path[MAX_FILEPATH_LENGTH];
@@ -40,10 +40,10 @@ namespace VKR {
         Status WriteFile(const char* filePath, const char* pData, const size_t size);
 
 
-        Status CreateDirectory(const char* dirPath); 
-        Status RemoveDirectory(const char* dirPath); 
+        Status CreateDirectory(const char* dirPath);
+        Status RemoveDirectory(const char* dirPath);
 
-        const Directory CurrentDirectory(); 
+        const Directory CurrentDirectory();
 
 
 
