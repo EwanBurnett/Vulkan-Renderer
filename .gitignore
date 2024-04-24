@@ -10,3 +10,7 @@ Docs/build/
 
 # Ignore IDE generated files
 .vs/
+
+# Ignore compiled shaders 
+*.spv 
+*.spirv

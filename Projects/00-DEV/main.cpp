@@ -7,10 +7,12 @@
 #include <Vulkan/VkHelpers.h>
 #include <Vulkan/VkSwapchain.h>
 #include <Vulkan/VkInit.h>
+#include <Vulkan/VkPipelineBuilder.h>
 
 #include <vector> 
 #include <Thread>
 
+#include <fstream>  //DEBUGGING
 
 #include <cstdio> 
 #include <easy/profiler.h>
@@ -20,7 +22,7 @@ constexpr uint32_t WINDOW_HEIGHT = 400;
 
 constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 
-void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, VkQueue& queue);
+void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, uint32_t& queueFamilyIndex, VkQueue& queue);
 void InitResources();
 void ShutdownVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain);
 
@@ -32,12 +34,13 @@ int main() {
     VKR::VkContext context;
     VKR::VkSwapchain swapchain;
     VkQueue graphicsQueue;  //TODO: Queue Wrapper
+    uint32_t graphicsQueueIndex;
 
     VKR::Window window;
     window.Create("Vulkan Renderer", WINDOW_WIDTH, WINDOW_HEIGHT);
     window.Show();
 
-    InitVulkan(context, swapchain, window, graphicsQueue);
+    InitVulkan(context, swapchain, window, graphicsQueueIndex, graphicsQueue);
 
     VkSemaphore s_ImageAvailable[FRAMES_IN_FLIGHT];
     VkSemaphore s_FrameFinished[FRAMES_IN_FLIGHT];
@@ -50,7 +53,7 @@ int main() {
     }
 
     VkCommandPool commandPool;
-    context.CreateCommandPool(0, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &commandPool);
+    context.CreateCommandPool(graphicsQueueIndex, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &commandPool);
 
     //Testing VMA
     VkBuffer dbgBuffer;
@@ -60,6 +63,40 @@ int main() {
     VkImage dbgImage;
     VmaAllocation dbgImageAlloc;
     context.CreateImage(VK_IMAGE_TYPE_2D, { 1600, 900, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_AUTO, 0, &dbgImageAlloc, &dbgImage);
+
+    //Pipeline Creation
+    VkPipeline computePipeline;
+    VkPipelineLayout computePipelineLayout;
+    context.CreatePipelineLayout(0, nullptr, &computePipelineLayout);
+
+    VkShaderModule computeShaderModule;
+    {   //DEBUGGING TEMP
+        auto readShaderBlob = [](const char* fileName)  //TODO: File I/O Helpers
+        {
+            std::ifstream file(fileName, std::ios::ate | std::ios::binary);
+
+            if (!file.is_open()) {
+                throw std::runtime_error("Failed to open file!\n");
+            }
+
+            size_t fileSize = (size_t)file.tellg();
+            std::vector<char> buffer(fileSize);
+
+            file.seekg(0);
+            file.read(buffer.data(), fileSize);
+
+            file.close();
+            return buffer;
+        };
+
+
+        auto cs_source = readShaderBlob("Shaders/cs.spirv");
+        context.CreateShaderModule(cs_source.data(), cs_source.size(), &computeShaderModule);
+    }
+
+    VKR::VkPipelineBuilder builder;
+    builder.AddShaderStage(computeShaderModule, VK_SHADER_STAGE_COMPUTE_BIT, "main");
+    builder.BuildComputePipeline(context, computePipelineLayout, &computePipeline);
 
     VKR::Timer timer;
     timer.Start();
@@ -80,11 +117,18 @@ int main() {
             fps = 1.0 / dtms;
             runtime = timer.Duration();
         }
-        vkWaitForFences(context.GetDevice(), 1, &f_FrameReady[frameIdx % FRAMES_IN_FLIGHT], VK_TRUE, UINT64_MAX);
-        vkResetFences(context.GetDevice(), 1, &f_FrameReady[frameIdx % FRAMES_IN_FLIGHT]);
 
         uint32_t imageIdx;
-        vkAcquireNextImageKHR(context.GetDevice(), swapchain.GetSwapchain(), UINT64_MAX, s_ImageAvailable[frameIdx % FRAMES_IN_FLIGHT], nullptr, &imageIdx);
+        {
+            EASY_BLOCK("Synchronization", profiler::colors::Red500);
+            vkWaitForFences(context.GetDevice(), 1, &f_FrameReady[frameIdx % FRAMES_IN_FLIGHT], VK_TRUE, UINT64_MAX);
+            vkResetFences(context.GetDevice(), 1, &f_FrameReady[frameIdx % FRAMES_IN_FLIGHT]);
+            {
+                EASY_BLOCK("Image Acquisition", profiler::colors::Red500);
+                vkAcquireNextImageKHR(context.GetDevice(), swapchain.GetSwapchain(), UINT64_MAX, s_ImageAvailable[frameIdx % FRAMES_IN_FLIGHT], nullptr, &imageIdx);
+            }
+        }
+
         {
             EASY_BLOCK("Update", profiler::colors::Amber400);
             //Simulate computing WorldViewProjection matrices for an arbitrary number of objects. 
@@ -112,7 +156,7 @@ int main() {
         }
 
         {
-            EASY_BLOCK("Rendering", profiler::colors::Red500);
+            EASY_BLOCK("Device Work", profiler::colors::Red500);
             VkCommandBuffer cmd;
             const VkCommandBufferAllocateInfo allocInfo = {
                    VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -130,27 +174,35 @@ int main() {
                 VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
                 nullptr
             };
-            vkBeginCommandBuffer(cmd, &beginInfo);
+            {
+                EASY_BLOCK("Compute Pass", profiler::colors::Red500);
+                vkBeginCommandBuffer(cmd, &beginInfo);
+                vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
+                vkCmdDispatch(cmd, 600, 400, 1);
+                vkEndCommandBuffer(cmd);
+            }
 
-            vkEndCommandBuffer(cmd);
-            VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+            {
+                EASY_BLOCK("Queue Submission", profiler::colors::Red500);
 
-            const VkSubmitInfo submitInfo = {
-                VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                nullptr,
-                1,
-                &s_ImageAvailable[frameIdx % FRAMES_IN_FLIGHT],
-                waitStages,
-                1,
-                &cmd,
-                1,
-                &s_FrameFinished[frameIdx % FRAMES_IN_FLIGHT]
-            };
+                VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
 
-            vkQueueSubmit(graphicsQueue, 1, &submitInfo, f_FrameReady[frameIdx % FRAMES_IN_FLIGHT]);
-            vkQueueWaitIdle(graphicsQueue);
+                const VkSubmitInfo submitInfo = {
+                    VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                    nullptr,
+                    1,
+                    &s_ImageAvailable[frameIdx % FRAMES_IN_FLIGHT],
+                    waitStages,
+                    1,
+                    &cmd,
+                    1,
+                    &s_FrameFinished[frameIdx % FRAMES_IN_FLIGHT]
+                };
 
-            vkFreeCommandBuffers(context.GetDevice(), commandPool, 1, &cmd);
+                vkQueueSubmit(graphicsQueue, 1, &submitInfo, f_FrameReady[frameIdx % FRAMES_IN_FLIGHT]);
+
+                vkFreeCommandBuffers(context.GetDevice(), commandPool, 1, &cmd);
+            }
 
             swapchain.Present(graphicsQueue, s_FrameFinished[frameIdx % FRAMES_IN_FLIGHT], &imageIdx);
         }
@@ -163,6 +215,9 @@ int main() {
     window.Destroy();
 
     vkDeviceWaitIdle(context.GetDevice());
+    context.DestroyPipeline(computePipeline);
+    context.DestroyPipelineLayout(computePipelineLayout);
+    context.DestroyShaderModule(computeShaderModule);
 
     context.DestroyImage(dbgImage, dbgImageAlloc);
     context.DestroyBuffer(dbgBuffer, dbgBufferAlloc);
@@ -185,7 +240,7 @@ int main() {
 
 //--------------------------
 
-void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, VkQueue& queue) {
+void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, uint32_t& queueFamilyIndex, VkQueue& queue) {
 
     std::vector<const char*> instanceLayers = {
 #if DEBUG
@@ -211,7 +266,10 @@ void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Windo
     std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-        VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME
+        VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
+#if DEBUG
+        VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME
+#endif
     };
 
 
@@ -223,7 +281,7 @@ void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Windo
 
     VK_CHECK(context.SelectPhysicalDevice());
 
-    uint32_t graphicsQueueIndex = VKR::VkHelpers::FindQueueFamilyIndex(context.GetPhysicalDevice(), VK_QUEUE_GRAPHICS_BIT);
+    queueFamilyIndex = VKR::VkHelpers::FindQueueFamilyIndex(context.GetPhysicalDevice(), VK_QUEUE_COMPUTE_BIT);
     float queuePriorities[] = { 1.0f };
     const VkDeviceQueueCreateInfo qci = VKR::VkInit::MakeDeviceQueueCreateInfo(0, 1, queuePriorities);
 
@@ -233,10 +291,9 @@ void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Windo
 
     context.CreateAllocator();
 
-    queue = context.GetDeviceQueue(graphicsQueueIndex, 0);
+    queue = context.GetDeviceQueue(queueFamilyIndex, 0);
 
-    swapchain.Create(context, &window, graphicsQueueIndex);
-
+    swapchain.Create(context, &window, queueFamilyIndex);
 }
 
 

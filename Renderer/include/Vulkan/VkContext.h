@@ -66,6 +66,9 @@ namespace VKR {
 
         VkResult AllocateCommandBuffers(VkCommandPool commandPool, VkCommandBufferLevel level, const uint32_t count, VkCommandBuffer* pCommandBuffers);
 
+        VkResult CreateShaderModule(const char* const pBlob, const size_t byteWidth, VkShaderModule* pShaderModule); 
+        void DestroyShaderModule(VkShaderModule& shaderModule);
+
         VkResult CreateSampler(VkSampler* pSampler);
         void DestroySampler(VkSampler& sampler);
 
@@ -74,7 +77,9 @@ namespace VKR {
 
 
         VkResult CreatePipelineLayout(const uint32_t numDescriptors, VkDescriptorSetLayout* pDescriptors, VkPipelineLayout* pPipelineLayout);
-        void DestroyPipelineLayout(VkPipelineLayout pipelineLayout);
+        void DestroyPipelineLayout(VkPipelineLayout& pipelineLayout);
+
+        void DestroyPipeline(VkPipeline& pipeline); 
 
         VkResult CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass);
         void DestroyRenderPass(VkRenderPass& renderPass);

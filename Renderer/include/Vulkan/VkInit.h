@@ -21,6 +21,8 @@ namespace VKR {
 
         VkBufferCreateInfo MakeBufferCreateInfo(const uint32_t size,  const VkBufferUsageFlags usage, const VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t queueFamilyIndexCount = 0, const uint32_t* pQueueFamilyIndices = nullptr, const uint32_t flags = 0);
         VkImageCreateInfo MakeImageCreateInfo(const VkExtent3D extents, const VkImageType type, const VkFormat format, const VkImageTiling tiling, const VkImageUsageFlags usage, const VkSharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t queueFamilyIndexCount = 0, const uint32_t* pQueueFamilyIndices = nullptr, const uint32_t flags = 0);
+
+
     }
     
 }

@@ -1,0 +1,7 @@
+#version 460
+#extension GL_EXT_debug_printf : require
+
+void main()
+{
+    debugPrintfEXT("Hello from Thread (%d, %d, %d)\n", gl_GlobalInvocationID.x, gl_GlobalInvocationID.y, gl_GlobalInvocationID.z);
+}

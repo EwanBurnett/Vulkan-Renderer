@@ -96,7 +96,7 @@ add_library("VkRenderer" STATIC
    "src/Logger.cpp" 
    "include/Timer.h" 
    "src/Timer.cpp"
- "include/Random.h" "src/Random.cpp" "include/Maths.h" "include/Maths/Vector2.h" "include/Maths/Vector3.h" "include/Maths/Vector4.h" "include/Maths/Matrix.h" "include/Vulkan/VkCommon.h" "src/Vulkan/VkCommon.cpp" "include/Vulkan/VkContext.h" "src/Vulkan/VkContext.cpp" "include/Vulkan/VkInit.h" "src/Vulkan/VkInit.cpp" "include/Vulkan/VkHelpers.h" "src/Vulkan/VkHelpers.cpp" "include/Vulkan/VkSwapchain.h" "src/Vulkan/VkSwapchain.cpp")
+ "include/Random.h" "src/Random.cpp" "include/Maths.h" "include/Maths/Vector2.h" "include/Maths/Vector3.h" "include/Maths/Vector4.h" "include/Maths/Matrix.h" "include/Vulkan/VkCommon.h" "src/Vulkan/VkCommon.cpp" "include/Vulkan/VkContext.h" "src/Vulkan/VkContext.cpp" "include/Vulkan/VkInit.h" "src/Vulkan/VkInit.cpp" "include/Vulkan/VkHelpers.h" "src/Vulkan/VkHelpers.cpp" "include/Vulkan/VkSwapchain.h" "src/Vulkan/VkSwapchain.cpp" "include/Vulkan/VkPipelineBuilder.h" "src/Vulkan/VkPipelineBuilder.cpp")
 
 # Link our dependencies
 target_link_libraries("VkRenderer" PUBLIC Vulkan::Vulkan Threads::Threads glfw imgui easy_profiler enkiTS PRIVATE assimp VulkanMemoryAllocator)

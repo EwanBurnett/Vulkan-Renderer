@@ -289,23 +289,23 @@ void VKR::VkContext::DestroyDevice()
 VkResult VKR::VkContext::CreateAllocator() {
     VmaAllocatorCreateInfo createInfo = {
         0, //FLAGS
-        m_PhysicalDevice, 
-        m_Device, 
+        m_PhysicalDevice,
+        m_Device,
         0,  //Default Block Size = 256MiB
-        nullptr, 
+        nullptr,
         nullptr, //TODO: Allocation Statistics VmaDeviceMemoryCallbacks
-        nullptr, 
-        nullptr, 
-        m_Instance, 
+        nullptr,
+        nullptr,
+        m_Instance,
         VK_API_VERSION_1_0,     //NOTE: Update to current API Version!
         nullptr
-    }; 
+    };
 
     return vmaCreateAllocator(&createInfo, &m_Allocator);
 }
 
 void VKR::VkContext::DestroyAllocator() {
-    vmaDestroyAllocator(m_Allocator); 
+    vmaDestroyAllocator(m_Allocator);
 }
 
 VkQueue VKR::VkContext::GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex)
@@ -347,27 +347,27 @@ void VKR::VkContext::DestroyFence(VkFence& fence)
     vkDestroyFence(m_Device, fence, nullptr);
 }
 
-VkResult VKR::VkContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer) 
+VkResult VKR::VkContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer)
 {
-    const VkBufferCreateInfo createInfo = VkInit::MakeBufferCreateInfo(size, usage); 
+    const VkBufferCreateInfo createInfo = VkInit::MakeBufferCreateInfo(size, usage);
 
-    VmaAllocationCreateInfo allocInfo = {}; 
-    allocInfo.flags = memoryFlags; 
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.flags = memoryFlags;
     allocInfo.usage = memoryUsage;
 
-    return vmaCreateBuffer(m_Allocator, &createInfo, &allocInfo, pBuffer, pAllocation, nullptr); 
+    return vmaCreateBuffer(m_Allocator, &createInfo, &allocInfo, pBuffer, pAllocation, nullptr);
 }
 
 void VKR::VkContext::DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation) {
-    vmaDestroyBuffer(m_Allocator, buffer, allocation); 
+    vmaDestroyBuffer(m_Allocator, buffer, allocation);
 }
 
-VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation*  pAllocation, VkImage* pImage)
+VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage)
 {
     const VkImageCreateInfo createInfo = VkInit::MakeImageCreateInfo(extents, type, format, tiling, usage);
 
-    VmaAllocationCreateInfo allocInfo = {}; 
-    allocInfo.flags = memoryFlags; 
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.flags = memoryFlags;
     allocInfo.usage = memoryUsage;
 
     return vmaCreateImage(m_Allocator, &createInfo, &allocInfo, pImage, pAllocation, nullptr);
@@ -405,4 +405,47 @@ VkResult VKR::VkContext::CreateCommandPool(const uint32_t queueFamilyIndex, cons
 void VKR::VkContext::DestroyCommandPool(VkCommandPool& commandPool)
 {
     vkDestroyCommandPool(m_Device, commandPool, nullptr);
+}
+
+
+VkResult VKR::VkContext::CreateShaderModule(const char* const pBlob, const size_t byteWidth, VkShaderModule* pShaderModule)
+{
+    const VkShaderModuleCreateInfo createInfo = {
+    VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        nullptr,
+        0,
+        byteWidth,
+        reinterpret_cast<const uint32_t*>(pBlob)
+    };
+
+    return vkCreateShaderModule(m_Device, &createInfo, nullptr, pShaderModule);
+}
+
+
+void VKR::VkContext::DestroyShaderModule(VkShaderModule& shaderModule) {
+    vkDestroyShaderModule(m_Device, shaderModule, nullptr);
+}
+
+VkResult VKR::VkContext::CreatePipelineLayout(const uint32_t numDescriptors, VkDescriptorSetLayout* pDescriptors, VkPipelineLayout* pPipelineLayout)
+{
+    const VkPipelineLayoutCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        nullptr,
+        0,
+        numDescriptors,
+        pDescriptors,
+        0,
+        nullptr
+    };
+
+    return vkCreatePipelineLayout(m_Device, &createInfo, nullptr, pPipelineLayout);
+}
+
+void VKR::VkContext::DestroyPipelineLayout(VkPipelineLayout& pipelineLayout) {
+    vkDestroyPipelineLayout(m_Device, pipelineLayout, nullptr);
+}
+
+
+void VKR::VkContext::DestroyPipeline(VkPipeline& pipeline) {
+    vkDestroyPipeline(m_Device, pipeline, nullptr);
 }
