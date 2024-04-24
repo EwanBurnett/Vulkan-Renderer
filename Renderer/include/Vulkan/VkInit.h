@@ -18,7 +18,11 @@ namespace VKR {
         VkImageViewCreateInfo MakeImageViewCreateInfo(VkImage image, VkImageViewType type, VkFormat format, VkImageAspectFlags aspectFlags);
 
         VkDeviceQueueCreateInfo MakeDeviceQueueCreateInfo(const uint32_t queueFamilyIndex, const uint32_t numPriorities, const float* pPriorities);
+
+        VkBufferCreateInfo MakeBufferCreateInfo(const uint32_t size,  const VkBufferUsageFlags usage, const VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t queueFamilyIndexCount = 0, const uint32_t* pQueueFamilyIndices = nullptr, const uint32_t flags = 0);
+        VkImageCreateInfo MakeImageCreateInfo(const VkExtent3D extents, const VkImageType type, const VkFormat format, const VkImageTiling tiling, const VkImageUsageFlags usage, const VkSharingMode = VK_SHARING_MODE_EXCLUSIVE, const uint32_t queueFamilyIndexCount = 0, const uint32_t* pQueueFamilyIndices = nullptr, const uint32_t flags = 0);
     }
+    
 }
 
 #endif

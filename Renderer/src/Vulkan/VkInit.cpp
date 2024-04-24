@@ -20,12 +20,61 @@ VkDebugReportCallbackCreateInfoEXT VKR::VkInit::MakeDebugReportCallbackCreateInf
         VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
         nullptr,
         VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT,
-        nullptr, 
+        nullptr,
         nullptr
     };
 }
 
 #endif
+
+
+VkDeviceQueueCreateInfo VKR::VkInit::MakeDeviceQueueCreateInfo(const uint32_t queueFamilyIndex, const uint32_t numPriorities, const float* pPriorities)
+{
+    return {
+        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+         nullptr,
+         0,
+         queueFamilyIndex,
+         numPriorities,
+         pPriorities
+    };
+
+}
+
+VkBufferCreateInfo VKR::VkInit::MakeBufferCreateInfo(const uint32_t size, const VkBufferUsageFlags usage, const VkSharingMode sharingMode, const uint32_t queueFamilyIndexCount, const uint32_t* pQueueFamilyIndices, const uint32_t flags) {
+    return {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        nullptr,
+        flags,
+        size,
+        usage,
+        sharingMode,
+        queueFamilyIndexCount,
+        pQueueFamilyIndices
+    };
+}
+
+
+VkImageCreateInfo VKR::VkInit::MakeImageCreateInfo(const VkExtent3D extents, const VkImageType type, const VkFormat format, const VkImageTiling tiling, const VkImageUsageFlags usage, const VkSharingMode sharingMode, const uint32_t queueFamilyIndexCount, const uint32_t* pQueueFamilyIndices, const uint32_t flags)
+{
+    return {
+        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        nullptr,
+        0,
+        type,
+        format,
+        extents,
+        1,  //Mip Levels
+        1,  //Array Layers
+        VK_SAMPLE_COUNT_1_BIT,
+        tiling,
+        usage,
+        sharingMode,
+        queueFamilyIndexCount,
+        pQueueFamilyIndices,
+        VK_IMAGE_LAYOUT_UNDEFINED
+    };
+}
 
 VkImageViewCreateInfo VKR::VkInit::MakeImageViewCreateInfo(VkImage image, VkImageViewType type, VkFormat format, VkImageAspectFlags aspectFlags)
 {
@@ -50,18 +99,5 @@ VkImageViewCreateInfo VKR::VkInit::MakeImageViewCreateInfo(VkImage image, VkImag
             1
         }
     };
-}
-
-VkDeviceQueueCreateInfo VKR::VkInit::MakeDeviceQueueCreateInfo(const uint32_t queueFamilyIndex, const uint32_t numPriorities, const float* pPriorities)
-{
-    return {
-        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-         nullptr,
-         0,
-         queueFamilyIndex,
-         numPriorities, 
-         pPriorities
-    };
-
 }
 

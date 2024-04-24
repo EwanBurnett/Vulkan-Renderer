@@ -39,20 +39,24 @@ namespace VKR {
         VkResult CreateDevice(const uint32_t numExtensions, const char* const* ppExtensions, const uint32_t numQueues, const VkDeviceQueueCreateInfo* pQueueCreateInfos, const VkPhysicalDeviceFeatures* pFeatures = nullptr);
         void DestroyDevice(); 
 
+        //VMA
+        VkResult CreateAllocator(); 
+        void DestroyAllocator(); 
+
         //Device Level Functions
         VkQueue GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex);
 
         VkResult CreateSemaphore(VkSemaphore* pSemaphore);
         void DestroySemaphore(VkSemaphore& semaphore);
 
-        VkResult CreateFence(VkFence* pFence);
+        VkResult CreateFence(VkFence* pFence, bool startSignaled = true);
         void DestroyFence(VkFence& fence);
 
-        VkResult CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory& memory, VkDeviceSize offset, VkBuffer* pBuffer);
-        void DestroyBuffer(VkBuffer& buffer);
+        VkResult CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer);
+        void DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation);
 
-        VkResult CreateImage(uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory& memory, VkImage* pImage);
-        void DestroyImage(VkImage& image);
+        VkResult CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation*  pAllocation, VkImage* pImage);
+        void DestroyImage(VkImage& image, VmaAllocation& allocation);
 
         VkResult CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pImageView) const;
         void DestroyImageView(VkImageView& imageView) const;
@@ -97,6 +101,7 @@ namespace VKR {
         VkDebugUtilsMessengerEXT m_DebugLogger; 
         VkDebugReportCallbackEXT m_DebugReporter; 
 #endif
+        VmaAllocator m_Allocator; 
     };
 }
 

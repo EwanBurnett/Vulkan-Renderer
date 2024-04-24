@@ -18,15 +18,16 @@
 constexpr uint32_t WINDOW_WIDTH = 600;
 constexpr uint32_t WINDOW_HEIGHT = 400;
 
-constexpr uint32_t FRAMES_IN_FLIGHT = 3; 
+constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 
 void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, VkQueue& queue);
+void InitResources();
 void ShutdownVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain);
 
 int main() {
 
-    EASY_BLOCK("App Initialization");
     VKR::Init();
+    EASY_BLOCK("App Initialization");
 
     VKR::VkContext context;
     VKR::VkSwapchain swapchain;
@@ -48,8 +49,17 @@ int main() {
         context.CreateFence(&f_FrameReady[i]);
     }
 
-    VkCommandPool commandPool; 
-    context.CreateCommandPool(0, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &commandPool); 
+    VkCommandPool commandPool;
+    context.CreateCommandPool(0, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &commandPool);
+
+    //Testing VMA
+    VkBuffer dbgBuffer;
+    VmaAllocation dbgBufferAlloc;
+    context.CreateBuffer(1024 * 1024 * 256, VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_AUTO, VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, &dbgBufferAlloc, &dbgBuffer);
+
+    VkImage dbgImage;
+    VmaAllocation dbgImageAlloc;
+    context.CreateImage(VK_IMAGE_TYPE_2D, { 1600, 900, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_AUTO, 0, &dbgImageAlloc, &dbgImage);
 
     VKR::Timer timer;
     timer.Start();
@@ -103,7 +113,7 @@ int main() {
 
         {
             EASY_BLOCK("Rendering", profiler::colors::Red500);
-            VkCommandBuffer cmd; 
+            VkCommandBuffer cmd;
             const VkCommandBufferAllocateInfo allocInfo = {
                    VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                    nullptr,
@@ -121,6 +131,7 @@ int main() {
                 nullptr
             };
             vkBeginCommandBuffer(cmd, &beginInfo);
+
             vkEndCommandBuffer(cmd);
             VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
@@ -152,12 +163,16 @@ int main() {
     window.Destroy();
 
     vkDeviceWaitIdle(context.GetDevice());
+
+    context.DestroyImage(dbgImage, dbgImageAlloc);
+    context.DestroyBuffer(dbgBuffer, dbgBufferAlloc);
+    context.DestroyCommandPool(commandPool);
+
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
         context.DestroyFence(f_FrameReady[i]);
         context.DestroySemaphore(s_FrameFinished[i]);
         context.DestroySemaphore(s_ImageAvailable[i]);
     }
-    context.DestroyCommandPool(commandPool);
 
     ShutdownVulkan(context, swapchain);
 
@@ -210,24 +225,31 @@ void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Windo
 
     uint32_t graphicsQueueIndex = VKR::VkHelpers::FindQueueFamilyIndex(context.GetPhysicalDevice(), VK_QUEUE_GRAPHICS_BIT);
     float queuePriorities[] = { 1.0f };
-    const VkDeviceQueueCreateInfo qci = VKR::VkInit::MakeDeviceQueueCreateInfo(0, 1, queuePriorities); 
+    const VkDeviceQueueCreateInfo qci = VKR::VkInit::MakeDeviceQueueCreateInfo(0, 1, queuePriorities);
 
     VkPhysicalDeviceFeatures features = {};
     features.geometryShader = VK_TRUE;
     context.CreateDevice(deviceExtensions.size(), deviceExtensions.data(), 1, &qci, &features);
 
+    context.CreateAllocator();
+
     queue = context.GetDeviceQueue(graphicsQueueIndex, 0);
 
     swapchain.Create(context, &window, graphicsQueueIndex);
+
 }
 
 
+//For Application Bootstrapping
+void InitResources() {
+
+}
 
 void ShutdownVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain) {
 
     vkDeviceWaitIdle(context.GetDevice());
     swapchain.Destroy(context);
-
+    context.DestroyAllocator();
     context.DestroyDevice();
 
 #ifdef DEBUG

@@ -1,3 +1,4 @@
+#define VMA_IMPLEMENTATION
 #include "../../include/Vulkan/VkContext.h"
 #include "../../include/Vulkan/VkInit.h"
 #include "../../include/Vulkan/VkHelpers.h"
@@ -8,10 +9,10 @@
 VKR::VkContext::VkContext()
 {
 #ifdef DEBUG
-    m_DebugLogger = VK_NULL_HANDLE; 
-    m_DebugReporter = VK_NULL_HANDLE; 
+    m_DebugLogger = VK_NULL_HANDLE;
+    m_DebugReporter = VK_NULL_HANDLE;
 #endif
-    m_Instance = VK_NULL_HANDLE; 
+    m_Instance = VK_NULL_HANDLE;
 }
 
 
@@ -116,7 +117,7 @@ VkResult VKR::VkContext::DestroyDebugReportCallbackEXT(VkDebugReportCallbackEXT&
 VkResult VKR::VkContext::CreateDebugReporter()
 {
 #ifdef DEBUG
-    VkDebugReportCallbackCreateInfoEXT createInfo = VkInit::MakeDebugReportCallbackCreateInfoEXT(); 
+    VkDebugReportCallbackCreateInfoEXT createInfo = VkInit::MakeDebugReportCallbackCreateInfoEXT();
     createInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)&VkContext::DebugReport;
     createInfo.pUserData = this;
 
@@ -167,7 +168,7 @@ const VkInstance& VKR::VkContext::GetInstance() const
     if (m_Instance == VK_NULL_HANDLE) {
         Log::Error(__FILE__, __LINE__, __PRETTY_FUNCTION__, "[Vulkan]\tRequested VkInstance was VK_NULL_HANDLE! Was CreateInstance() called?");
     }
-    return m_Instance; 
+    return m_Instance;
 }
 
 VkResult VKR::VkContext::CreateInstance(const uint32_t numLayers, const char* const* ppLayers, const uint32_t numExtensions, const char* const* ppExtensions, const VkApplicationInfo* pApplicationInfo)
@@ -187,7 +188,7 @@ VkResult VKR::VkContext::CreateInstance(const uint32_t numLayers, const char* co
 
     //Link a Debug Messenger in Debug builds
 #ifdef DEBUG
-    VkDebugUtilsMessengerCreateInfoEXT messengerInfo = VkInit::MakeDebugUtilsMessengerCreateInfoEXT(); 
+    VkDebugUtilsMessengerCreateInfoEXT messengerInfo = VkInit::MakeDebugUtilsMessengerCreateInfoEXT();
     messengerInfo.pfnUserCallback = &VkContext::DebugLog;
     messengerInfo.pUserData = this;
 #endif
@@ -196,7 +197,7 @@ VkResult VKR::VkContext::CreateInstance(const uint32_t numLayers, const char* co
     const VkInstanceCreateInfo createInfo = {
         VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 #ifdef DEBUG
-        &messengerInfo,
+        & messengerInfo,
 #else
         nullptr,
 #endif
@@ -222,10 +223,10 @@ const VkPhysicalDevice& VKR::VkContext::GetPhysicalDevice() const
     if (m_PhysicalDevice == VK_NULL_HANDLE) {
         Log::Error(__FILE__, __LINE__, __PRETTY_FUNCTION__, "[Vulkan]\tRequested VkPhysicalDevice was VK_NULL_HANDLE! Was SelectPhysicalDevice() called?");
     }
-    return m_PhysicalDevice; 
+    return m_PhysicalDevice;
 }
 
-VkResult VKR::VkContext::SelectPhysicalDevice() 
+VkResult VKR::VkContext::SelectPhysicalDevice()
 {
     uint32_t count = 0;
     vkEnumeratePhysicalDevices(m_Instance, &count, nullptr);
@@ -248,7 +249,7 @@ const VkDevice& VKR::VkContext::GetDevice() const
     if (m_Device == VK_NULL_HANDLE) {
         Log::Error(__FILE__, __LINE__, __PRETTY_FUNCTION__, "[Vulkan]\tRequested VkDevice was VK_NULL_HANDLE! Was CreateDevice() called?");
     }
-    return m_Device; 
+    return m_Device;
 }
 
 VkResult VKR::VkContext::CreateDevice(const uint32_t numExtensions, const char* const* ppExtensions, const uint32_t numQueues, const VkDeviceQueueCreateInfo* pQueueCreateInfos, const VkPhysicalDeviceFeatures* pFeatures)
@@ -285,11 +286,33 @@ void VKR::VkContext::DestroyDevice()
     vkDestroyDevice(m_Device, nullptr);
 }
 
+VkResult VKR::VkContext::CreateAllocator() {
+    VmaAllocatorCreateInfo createInfo = {
+        0, //FLAGS
+        m_PhysicalDevice, 
+        m_Device, 
+        0,  //Default Block Size = 256MiB
+        nullptr, 
+        nullptr, //TODO: Allocation Statistics VmaDeviceMemoryCallbacks
+        nullptr, 
+        nullptr, 
+        m_Instance, 
+        VK_API_VERSION_1_0,     //NOTE: Update to current API Version!
+        nullptr
+    }; 
+
+    return vmaCreateAllocator(&createInfo, &m_Allocator);
+}
+
+void VKR::VkContext::DestroyAllocator() {
+    vmaDestroyAllocator(m_Allocator); 
+}
+
 VkQueue VKR::VkContext::GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex)
 {
-    VkQueue queue = VK_NULL_HANDLE; 
+    VkQueue queue = VK_NULL_HANDLE;
     vkGetDeviceQueue(m_Device, queueFamilyIndex, queueIndex, &queue);
-    return queue; 
+    return queue;
 }
 
 VkResult VKR::VkContext::CreateSemaphore(VkSemaphore* pSemaphore)
@@ -308,12 +331,12 @@ void VKR::VkContext::DestroySemaphore(VkSemaphore& semaphore)
     vkDestroySemaphore(m_Device, semaphore, nullptr);
 }
 
-VkResult VKR::VkContext::CreateFence(VkFence* pFence)
+VkResult VKR::VkContext::CreateFence(VkFence* pFence, bool startSignaled)
 {
-    VkFenceCreateInfo createInfo = {
+    const VkFenceCreateInfo createInfo = {
        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
        nullptr,
-       VK_FENCE_CREATE_SIGNALED_BIT
+       startSignaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0
     };
 
     return vkCreateFence(m_Device, &createInfo, nullptr, pFence);
@@ -324,11 +347,42 @@ void VKR::VkContext::DestroyFence(VkFence& fence)
     vkDestroyFence(m_Device, fence, nullptr);
 }
 
+VkResult VKR::VkContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer) 
+{
+    const VkBufferCreateInfo createInfo = VkInit::MakeBufferCreateInfo(size, usage); 
+
+    VmaAllocationCreateInfo allocInfo = {}; 
+    allocInfo.flags = memoryFlags; 
+    allocInfo.usage = memoryUsage;
+
+    return vmaCreateBuffer(m_Allocator, &createInfo, &allocInfo, pBuffer, pAllocation, nullptr); 
+}
+
+void VKR::VkContext::DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation) {
+    vmaDestroyBuffer(m_Allocator, buffer, allocation); 
+}
+
+VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation*  pAllocation, VkImage* pImage)
+{
+    const VkImageCreateInfo createInfo = VkInit::MakeImageCreateInfo(extents, type, format, tiling, usage);
+
+    VmaAllocationCreateInfo allocInfo = {}; 
+    allocInfo.flags = memoryFlags; 
+    allocInfo.usage = memoryUsage;
+
+    return vmaCreateImage(m_Allocator, &createInfo, &allocInfo, pImage, pAllocation, nullptr);
+}
+
+void VKR::VkContext::DestroyImage(VkImage& image, VmaAllocation& allocation)
+{
+    vmaDestroyImage(m_Allocator, image, allocation);
+}
+
 VkResult VKR::VkContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pImageView) const
 {
     const VkImageViewCreateInfo createInfo = VkInit::MakeImageViewCreateInfo(image, VK_IMAGE_VIEW_TYPE_2D, format, aspectFlags);
 
-    return vkCreateImageView(m_Device, &createInfo, nullptr, pImageView); 
+    return vkCreateImageView(m_Device, &createInfo, nullptr, pImageView);
 }
 
 void VKR::VkContext::DestroyImageView(VkImageView& imageView) const
