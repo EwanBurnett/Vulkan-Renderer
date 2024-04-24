@@ -4,7 +4,7 @@
 /**
 *   @file Vector3.h
 *   @author Ewan Burnett (EwanBurnettSK@outlook.com)
-*   @date 2024/02/23
+*   @date 2024/04/23
 */
 
 
@@ -35,6 +35,9 @@ namespace VKR {
 
             friend Vector3<T> operator +(Vector3<T> lhs, const Vector3<T>& rhs) { return { lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z }; }
             friend Vector3<T> operator -(Vector3<T> lhs, const Vector3<T>& rhs) { return { lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z }; }
+            friend Vector3<T> operator -(Vector3<T> lhs) {
+                return { -lhs.x, -lhs.y, -lhs.z };
+            }
             friend Vector3<T> operator *(Vector3<T> lhs, const T& rhs) { return { lhs.x * rhs, lhs.y * rhs, lhs.z * rhs }; }
             friend Vector3<T> operator /(Vector3<T> lhs, const T& rhs) { return { lhs.x / rhs, lhs.y / rhs, lhs.z / rhs }; }
 
@@ -53,39 +56,39 @@ namespace VKR {
 
             /**
              * @brief Equivalent to Vector3<T>(0, 1, 0)
-             * @return A direction Vector pointing Up
+             * @return A direction Vector pointing Upwards
             */
-            inline const Vector3<T> Up() const { return{ static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0) }; }
+            inline static constexpr Vector3<T> Up() { return{ static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0) }; }
 
             /**
              * @brief Equivalent to Vector3<T>(0, -1, 0)
-             * @return A direction Vector pointing Down
+             * @return A direction Vector pointing Upwards
             */
-            inline const Vector3<T> Down() const { return{ static_cast<T>(0.0), static_cast<T>(-1.0), static_cast<T>(0.0) }; }
+            inline static constexpr Vector3<T> Down() { return{ static_cast<T>(0.0), static_cast<T>(-1.0), static_cast<T>(0.0) }; }
 
             /**
              * @brief Equivalent to Vector3<T>(-1, 0, 0)
              * @return A direction Vector pointing Left
             */
-            inline const Vector3<T> Left() const { return{ static_cast<T>(-1.0), static_cast<T>(0.0), static_cast<T>(0.0) }; }
+            inline static constexpr Vector3<T> Left() { return{ static_cast<T>(-1.0), static_cast<T>(0.0), static_cast<T>(0.0) }; }
 
             /**
              * @brief Equivalent to Vector3<T>(1, 0, 0)
              * @return A direction Vector pointing Right
             */
-            inline const Vector3<T> Right() const { return{ static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0) }; }
+            inline static constexpr Vector3<T> Right() { return{ static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0) }; }
 
             /**
              * @brief Equivalent to Vector3<T>(0, 0, 1)
              * @return A direction Vector pointing Forwards
             */
-            inline const Vector3<T> Forwards() const { return{ static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0) }; }
+            inline static constexpr Vector3<T> Forwards() { return{ static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0) }; }
 
             /**
              * @brief Equivalent to Vector3<T>(0, 0, -1)
              * @return A direction Vector pointing Backwards
             */
-            inline const Vector3<T> Backwards() const { return{ static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(-1.0) }; }
+            inline static constexpr Vector3<T> Backwards() { return{ static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(-1.0) }; }
 
 
 

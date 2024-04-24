@@ -3,7 +3,7 @@
 /**
 *   @file Vector2.h
 *   @author Ewan Burnett (EwanBurnettSK@outlook.com)
-*   @date 2024/02/23
+*   @date 2024/04/23
 */
 
 #include <type_traits>

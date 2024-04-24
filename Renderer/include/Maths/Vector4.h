@@ -4,7 +4,7 @@
 /**
 *   @file Vector4.h
 *   @author Ewan Burnett (EwanBurnettSK@outlook.com)
-*   @date 2024/02/23
+*   @date 2024/04/23
 */
 
 #include <type_traits>
@@ -19,6 +19,15 @@ namespace VKR {
         */
         template<typename T>
         struct Vector4 {
+     
+            Vector4(Vector3<T> vec) {
+                    x = vec.x;
+                    y = vec.y;
+                    z = vec.z; 
+                    w = 0.0; 
+                }
+
+
             Vector4(T X = static_cast<T>(0), T Y = static_cast<T>(0), T Z = static_cast<T>(0), T W = static_cast<T>(0)) {
                 x = X;
                 y = Y;
@@ -53,7 +62,7 @@ namespace VKR {
             /**
              * @brief Computes the dot product of two vectors.
             */
-            inline double Dot(const Vector4<T>& other) { return (double)(x * other.x + y * other.y); }
+            inline double Dot(const Vector4<T>& other) { return (double)((x * other.x) + (y * other.y) + (z * other.z) + (w * other.w)); }
 
             /**
              * @brief Computes the Magnitude of a Vector.

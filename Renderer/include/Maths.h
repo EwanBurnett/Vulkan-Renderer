@@ -74,7 +74,7 @@ namespace VKR {
          * @return 'degrees' parameter in Radians.
         */
         template <typename T>
-        inline T DegToRad(const T& degrees) {
+        inline constexpr T DegToRad(const T& degrees) {
             static_assert(std::is_arithmetic<T>(), "Error: T is not Arithmetic!\n");
             return degrees * Math::Deg2Rad;
         }
@@ -86,7 +86,7 @@ namespace VKR {
          * @return 'radians' parameter in Degrees.
         */
         template <typename T>
-        inline T RadToDeg(const T& radians) {
+        inline constexpr T RadToDeg(const T& radians) {
             static_assert(std::is_arithmetic<T>(), "Error: T is not Arithmetic!\n");
             return degrees * Math::Rad2Deg;
         }
@@ -111,6 +111,27 @@ namespace VKR {
             y = y * (threeHalfs - (x2 * y * y));
 
             return y;
+        }
+
+
+        template <typename T> 
+        inline void Orthonormalize(Vector3<T>& a, Vector3<T>& b, Vector3<T>& c) {
+            Vector3<T> v[3] = { a, b, c };
+
+            //Orthonormalize using the Modified Gram-Schmidt Algorithm 
+            for (uint8_t i = 0; i < 3; i++) {
+                for (uint8_t j = 0; j < i; j++) {
+                    const double f = (v[j].Dot(v[i]) / v[j].Dot(v[j]));
+
+                    for (uint8_t k = 0; k < 3; k++) {
+                        v[i].arr[k] -= f * v[j].arr[k]; 
+                    }
+                }
+            }
+
+            a = v[0].Normalize(); 
+            b = v[1].Normalize(); 
+            c = v[2].Normalize(); 
         }
     }
 }
