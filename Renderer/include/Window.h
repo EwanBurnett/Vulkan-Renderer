@@ -7,8 +7,6 @@
 *   @date 2024/04/23
 */
 #include "Types.h"
-
-
 #include <GLFW/glfw3.h>
 
 namespace VKR {

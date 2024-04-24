@@ -216,3 +216,139 @@ void VKR::VkContext::DestroyInstance()
     EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyInstance(m_Instance, nullptr);
 }
+
+const VkPhysicalDevice& VKR::VkContext::GetPhysicalDevice() const
+{
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        Log::Error(__FILE__, __LINE__, __PRETTY_FUNCTION__, "[Vulkan]\tRequested VkPhysicalDevice was VK_NULL_HANDLE! Was SelectPhysicalDevice() called?");
+    }
+    return m_PhysicalDevice; 
+}
+
+VkResult VKR::VkContext::SelectPhysicalDevice() 
+{
+    uint32_t count = 0;
+    vkEnumeratePhysicalDevices(m_Instance, &count, nullptr);
+    VkPhysicalDevice* pDevices = new VkPhysicalDevice[count];
+    vkEnumeratePhysicalDevices(m_Instance, &count, pDevices);
+
+    if (count == 0) {
+        delete[] pDevices;
+        return VK_ERROR_DEVICE_LOST;
+    }
+
+    m_PhysicalDevice = pDevices[0]; //TODO: Better Physical Device Selection
+    delete[] pDevices;
+
+    return VK_SUCCESS;
+}
+
+const VkDevice& VKR::VkContext::GetDevice() const
+{
+    if (m_Device == VK_NULL_HANDLE) {
+        Log::Error(__FILE__, __LINE__, __PRETTY_FUNCTION__, "[Vulkan]\tRequested VkDevice was VK_NULL_HANDLE! Was CreateDevice() called?");
+    }
+    return m_Device; 
+}
+
+VkResult VKR::VkContext::CreateDevice(const uint32_t numExtensions, const char* const* ppExtensions, const uint32_t numQueues, const VkDeviceQueueCreateInfo* pQueueCreateInfos, const VkPhysicalDeviceFeatures* pFeatures)
+{
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        Log::Fatal(__FILE__, __LINE__, __PRETTY_FUNCTION__, true, "[Vulkan]\tPhysical Device was VK_NULL_HANDLE!\n");
+        return VK_ERROR_UNKNOWN;
+    }
+
+    //Validate each requested extension
+    if (!VkHelpers::ValidatePhysicalDeviceExtensionSupportArray(m_PhysicalDevice, numExtensions, ppExtensions)) {
+        Log::Error(__FILE__, __LINE__, __PRETTY_FUNCTION__, "[Vulkan]\tNot all Extensions were supported!\n");
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+
+    const VkDeviceCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        nullptr,
+        0,
+        numQueues,
+        pQueueCreateInfos,
+        0,
+        nullptr,
+        numExtensions,
+        ppExtensions,
+        pFeatures
+    };
+
+    return vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_Device);
+}
+
+void VKR::VkContext::DestroyDevice()
+{
+    vkDestroyDevice(m_Device, nullptr);
+}
+
+VkQueue VKR::VkContext::GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex)
+{
+    VkQueue queue = VK_NULL_HANDLE; 
+    vkGetDeviceQueue(m_Device, queueFamilyIndex, queueIndex, &queue);
+    return queue; 
+}
+
+VkResult VKR::VkContext::CreateSemaphore(VkSemaphore* pSemaphore)
+{
+    const VkSemaphoreCreateInfo createInfo = {
+       VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+       nullptr,
+       0
+    };
+
+    return vkCreateSemaphore(m_Device, &createInfo, nullptr, pSemaphore);
+}
+
+void VKR::VkContext::DestroySemaphore(VkSemaphore& semaphore)
+{
+    vkDestroySemaphore(m_Device, semaphore, nullptr);
+}
+
+VkResult VKR::VkContext::CreateFence(VkFence* pFence)
+{
+    VkFenceCreateInfo createInfo = {
+       VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+       nullptr,
+       VK_FENCE_CREATE_SIGNALED_BIT
+    };
+
+    return vkCreateFence(m_Device, &createInfo, nullptr, pFence);
+}
+
+void VKR::VkContext::DestroyFence(VkFence& fence)
+{
+    vkDestroyFence(m_Device, fence, nullptr);
+}
+
+VkResult VKR::VkContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pImageView) const
+{
+    const VkImageViewCreateInfo createInfo = VkInit::MakeImageViewCreateInfo(image, VK_IMAGE_VIEW_TYPE_2D, format, aspectFlags);
+
+    return vkCreateImageView(m_Device, &createInfo, nullptr, pImageView); 
+}
+
+void VKR::VkContext::DestroyImageView(VkImageView& imageView) const
+{
+    vkDestroyImageView(m_Device, imageView, nullptr);
+}
+
+VkResult VKR::VkContext::CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool)
+{
+    const VkCommandPoolCreateInfo createInfo = {
+      VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      nullptr,
+      flags,
+      queueFamilyIndex
+    };
+
+    return vkCreateCommandPool(m_Device, &createInfo, nullptr, pCommandPool);
+}
+
+void VKR::VkContext::DestroyCommandPool(VkCommandPool& commandPool)
+{
+    vkDestroyCommandPool(m_Device, commandPool, nullptr);
+}

@@ -9,7 +9,7 @@ VKR::Status VKR::Init()
     
     glfwInit();
     EASY_MAIN_THREAD;
-    EASY_PROFILER_ENABLE; //TODO: Debug Switch
+    //EASY_PROFILER_ENABLE; //TODO: Debug Switch
     profiler::startListen();
 
     return Status::NOT_IMPLEMENTED; 

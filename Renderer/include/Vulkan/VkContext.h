@@ -30,6 +30,52 @@ namespace VKR {
         void DestroyInstance(); 
 
 
+        //Physical Device
+        const VkPhysicalDevice& GetPhysicalDevice() const; 
+        VkResult SelectPhysicalDevice(); 
+
+        //Logical Device
+        const VkDevice& GetDevice() const; 
+        VkResult CreateDevice(const uint32_t numExtensions, const char* const* ppExtensions, const uint32_t numQueues, const VkDeviceQueueCreateInfo* pQueueCreateInfos, const VkPhysicalDeviceFeatures* pFeatures = nullptr);
+        void DestroyDevice(); 
+
+        //Device Level Functions
+        VkQueue GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex);
+
+        VkResult CreateSemaphore(VkSemaphore* pSemaphore);
+        void DestroySemaphore(VkSemaphore& semaphore);
+
+        VkResult CreateFence(VkFence* pFence);
+        void DestroyFence(VkFence& fence);
+
+        VkResult CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory& memory, VkDeviceSize offset, VkBuffer* pBuffer);
+        void DestroyBuffer(VkBuffer& buffer);
+
+        VkResult CreateImage(uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkDeviceMemory& memory, VkImage* pImage);
+        void DestroyImage(VkImage& image);
+
+        VkResult CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pImageView) const;
+        void DestroyImageView(VkImageView& imageView) const;
+
+        VkResult CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool);
+        void DestroyCommandPool(VkCommandPool& commandPool);
+
+        VkResult AllocateCommandBuffers(VkCommandPool commandPool, VkCommandBufferLevel level, const uint32_t count, VkCommandBuffer* pCommandBuffers);
+
+        VkResult CreateSampler(VkSampler* pSampler);
+        void DestroySampler(VkSampler& sampler);
+
+        VkResult CreateDescriptorPool(const uint32_t uniformBufferCount, const uint32_t storageBufferCount, const uint32_t samplerCount, VkDescriptorPool* pDescriptorPool);
+        void DestroyDescriptorPool(VkDescriptorPool& descriptorPool);
+
+
+        VkResult CreatePipelineLayout(const uint32_t numDescriptors, VkDescriptorSetLayout* pDescriptors, VkPipelineLayout* pPipelineLayout);
+        void DestroyPipelineLayout(VkPipelineLayout pipelineLayout);
+
+        VkResult CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass);
+        void DestroyRenderPass(VkRenderPass& renderPass);
+
+
     private:
 #ifdef DEBUG
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugLog(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);

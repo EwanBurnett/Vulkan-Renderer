@@ -336,3 +336,30 @@ bool VKR::VkHelpers::ValidatePhysicalDevicePresentationSupport(const VkPhysicalD
 
     return presentSupported == VK_TRUE;
 }
+
+
+
+VkResult VKR::VkHelpers::QueryPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice device, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR& capabilities)
+{
+    return vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &capabilities);
+}
+
+std::vector<VkSurfaceFormatKHR> VKR::VkHelpers::QueryPhysicalDeviceSurfaceFormats(VkPhysicalDevice device, VkSurfaceKHR surface)
+{
+    uint32_t numFormats = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &numFormats, nullptr);
+    std::vector<VkSurfaceFormatKHR> formats(numFormats);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &numFormats, formats.data());
+    return formats;
+}
+
+std::vector<VkPresentModeKHR> VKR::VkHelpers::QueryPhysicalDeviceSurfacePresentModes(VkPhysicalDevice device, VkSurfaceKHR surface)
+{
+    uint32_t numModes = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &numModes, nullptr);
+    std::vector<VkPresentModeKHR> presentModes(numModes);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &numModes, presentModes.data());
+
+    return presentModes;
+}
+

@@ -26,3 +26,42 @@ VkDebugReportCallbackCreateInfoEXT VKR::VkInit::MakeDebugReportCallbackCreateInf
 }
 
 #endif
+
+VkImageViewCreateInfo VKR::VkInit::MakeImageViewCreateInfo(VkImage image, VkImageViewType type, VkFormat format, VkImageAspectFlags aspectFlags)
+{
+    return {
+        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        nullptr,
+        0,
+        image,
+        type,
+        format,
+        {
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY,
+            VK_COMPONENT_SWIZZLE_IDENTITY
+        },
+        {
+            aspectFlags,
+            0,
+            1,
+            0,
+            1
+        }
+    };
+}
+
+VkDeviceQueueCreateInfo VKR::VkInit::MakeDeviceQueueCreateInfo(const uint32_t queueFamilyIndex, const uint32_t numPriorities, const float* pPriorities)
+{
+    return {
+        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+         nullptr,
+         0,
+         queueFamilyIndex,
+         numPriorities, 
+         pPriorities
+    };
+
+}
+

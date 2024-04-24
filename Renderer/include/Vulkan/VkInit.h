@@ -11,11 +11,13 @@
 namespace VKR {
     namespace VkInit {
 #ifdef DEBUG
-        VkDebugUtilsMessengerCreateInfoEXT MakeDebugUtilsMessengerCreateInfoEXT(); 
-        VkDebugReportCallbackCreateInfoEXT MakeDebugReportCallbackCreateInfoEXT(); 
+        VkDebugUtilsMessengerCreateInfoEXT MakeDebugUtilsMessengerCreateInfoEXT();
+        VkDebugReportCallbackCreateInfoEXT MakeDebugReportCallbackCreateInfoEXT();
 #endif
 
+        VkImageViewCreateInfo MakeImageViewCreateInfo(VkImage image, VkImageViewType type, VkFormat format, VkImageAspectFlags aspectFlags);
 
+        VkDeviceQueueCreateInfo MakeDeviceQueueCreateInfo(const uint32_t queueFamilyIndex, const uint32_t numPriorities, const float* pPriorities);
     }
 }
 

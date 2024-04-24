@@ -8,6 +8,7 @@
 */
 
 #include "VkCommon.h"
+#include <vector> 
 
 namespace VKR {
     namespace VkHelpers {
@@ -28,6 +29,12 @@ namespace VKR {
         bool ValidatePhysicalDeviceExtensionSupportArray(const VkPhysicalDevice& device, const uint32_t numExtensions, const char* const* pExtensions);
 
         bool ValidatePhysicalDevicePresentationSupport(const VkPhysicalDevice& device, const uint32_t presentQueueFamilyIndex, VkSurfaceKHR surface);
+
+     
+        VkResult QueryPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice device, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR& capabilities);
+        std::vector<VkSurfaceFormatKHR> QueryPhysicalDeviceSurfaceFormats(VkPhysicalDevice device, VkSurfaceKHR surface);
+        std::vector<VkPresentModeKHR> QueryPhysicalDeviceSurfacePresentModes(VkPhysicalDevice device, VkSurfaceKHR surface);
+
     }
 }
 
