@@ -73,7 +73,7 @@ namespace VKR {
              * @brief Returns the Normalized form of a vector, dividing each component by its length.
              * @return The normalized vector.
             */
-            inline Vector4& Normalize() { return (*this / this->Length()); }
+            inline Vector4 Normalize() { return (*this / this->Length()); }
 
             /**
              * @brief Sets each component of this Vector to a value.

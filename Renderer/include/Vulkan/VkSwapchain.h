@@ -26,7 +26,8 @@ namespace VKR {
 
 
         VkResult SetClearValue(float r, float g, float b, float a, float depth, uint32_t stencil);
-        VkClearValue GetClearValue() const;
+        VkClearValue GetColourClearValue() const;
+        VkClearValue GetDepthStencilClearValue() const;
 
         VkResult Present(VkQueue queue, VkSemaphore semaphore, uint32_t* pIndex);
 
@@ -53,7 +54,8 @@ namespace VKR {
         VkSurfaceFormatKHR m_SurfaceFormat;
         VkPresentModeKHR m_SurfacePresentMode;
 
-        VkClearValue m_ClearValue;
+        VkClearValue m_ColourClearValue;
+        VkClearValue m_DepthStencilClearValue;
     };
 };
 

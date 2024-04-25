@@ -449,3 +449,25 @@ void VKR::VkContext::DestroyPipelineLayout(VkPipelineLayout& pipelineLayout) {
 void VKR::VkContext::DestroyPipeline(VkPipeline& pipeline) {
     vkDestroyPipeline(m_Device, pipeline, nullptr);
 }
+
+VkResult VKR::VkContext::CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass)
+{
+    const VkRenderPassCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        nullptr,
+        0,
+        numAttachments,
+        pAttachments,
+        numSubpasses,
+        pSubpasses,
+        numDependencies,
+        pDependencies
+    };
+    return vkCreateRenderPass(m_Device, &createInfo, nullptr, pRenderPass);
+}
+
+void VKR::VkContext::DestroyRenderPass(VkRenderPass& renderPass)
+{
+    vkDestroyRenderPass(m_Device, renderPass, nullptr);
+}
+

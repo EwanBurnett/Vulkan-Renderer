@@ -25,6 +25,8 @@ VkResult VKR::VkSwapchain::Create(const VkContext& context, const Window* pWindo
     CreateSwapchainKHR(context.GetDevice(), imageCount, pWindow->GetWidth(), pWindow->GetHeight(), queueFamilyIndex);
 
     AcquireSwapchainImages(context);
+
+    SetClearValue(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0xff);
     return VK_SUCCESS;
 }
 
@@ -63,15 +65,21 @@ const std::vector<VkImageView>& VKR::VkSwapchain::GetImageViews() const
 
 VkResult VKR::VkSwapchain::SetClearValue(float r, float g, float b, float a, float depth, uint32_t stencil)
 {
-    m_ClearValue.color = { r, g, b, a };
-    m_ClearValue.depthStencil = { depth, stencil };
+    m_ColourClearValue.color = { r, g, b, a };
+    m_DepthStencilClearValue.depthStencil = { depth, stencil };
 
     return VK_SUCCESS;
 }
 
-VkClearValue VKR::VkSwapchain::GetClearValue() const
+
+VkClearValue VKR::VkSwapchain::GetDepthStencilClearValue() const
 {
-    return m_ClearValue; 
+    return m_DepthStencilClearValue; 
+}
+
+VkClearValue VKR::VkSwapchain::GetColourClearValue() const
+{
+    return m_ColourClearValue;
 }
 
 VkResult VKR::VkSwapchain::Present(VkQueue queue, VkSemaphore semaphore, uint32_t* pIndex)
