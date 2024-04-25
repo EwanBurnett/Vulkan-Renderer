@@ -179,11 +179,11 @@ namespace VKR {
                 return mat;
             }
 
-            inline static constexpr Matrix4x4 ProjectionFoVRadians(const T fovRadians, const T aspectRatio, const T nearPlane, const T farPlane) {
+            inline static constexpr Matrix4x4 ProjectionFoVRadians(const double fovRadians, const double aspectRatio, const double nearPlane, const double farPlane) {
                 EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
-                const T a = tan(fovRadians / 2.0);
+                const double a = tan(fovRadians / 2.0);
 
                 mat.arr[0] = 1.0 / aspectRatio * a;
                 mat.arr[5] = 1.0 / a;

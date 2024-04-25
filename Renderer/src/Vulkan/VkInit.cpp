@@ -125,6 +125,16 @@ VkPipelineInputAssemblyStateCreateInfo VKR::VkInit::MakePipelineInputAssemblySta
     };
 }
 
+VkPipelineTessellationStateCreateInfo VKR::VkInit::MakePipelineTessellationStateCreateInfo()
+{
+    return {
+        VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
+        nullptr,
+        0,
+        0
+    };
+}
+
 VkPipelineViewportStateCreateInfo VKR::VkInit::MakePipelineViewportStateCreateInfo()
 {
     return {

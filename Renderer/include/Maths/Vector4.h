@@ -24,7 +24,7 @@ namespace VKR {
                     x = vec.x;
                     y = vec.y;
                     z = vec.z; 
-                    w = 0.0; 
+                    w = static_cast<T>(0.0); 
                 }
 
 

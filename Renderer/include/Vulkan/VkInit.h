@@ -24,6 +24,7 @@ namespace VKR {
 
         VkPipelineVertexInputStateCreateInfo MakePipelineVertexInputStateCreateInfo();
         VkPipelineInputAssemblyStateCreateInfo MakePipelineInputAssemblyStateCreateInfo();
+        VkPipelineTessellationStateCreateInfo MakePipelineTessellationStateCreateInfo(); 
         VkPipelineViewportStateCreateInfo MakePipelineViewportStateCreateInfo();
         VkPipelineRasterizationStateCreateInfo MakePipelineRasterizationStateCreateInfo(); 
         VkPipelineMultisampleStateCreateInfo MakePipelineMultisampleStateCreateInfo();

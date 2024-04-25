@@ -1,8 +1,8 @@
 #ifndef __VKRENDERER_VKSWAPCHAIN_H
 #define __VKRENDERER_VKSWAPCHAIN_H
 /**
-*   @file VkContext.h
-*   @brief Vulkan GPU Context
+*   @file VkSwapchain.h
+*   @brief Vulkan Swapchain Abstraction
 *   @author Ewan Burnett (EwanBurnettSK@Outlook.com)
 *   @date 2024/04/24
 */
@@ -25,7 +25,7 @@ namespace VKR {
         const std::vector<VkImageView>& GetImageViews() const;
 
 
-        VkResult SetClearValue(float r, float g, float b, float a, float depth, uint32_t stencil);
+        void SetClearValue(float r, float g, float b, float a, float depth, uint32_t stencil);
         VkClearValue GetColourClearValue() const;
         VkClearValue GetDepthStencilClearValue() const;
 

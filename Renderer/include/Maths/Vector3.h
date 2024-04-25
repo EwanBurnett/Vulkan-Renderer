@@ -131,9 +131,9 @@ namespace VKR {
         typedef Vector3<int> Vector3i;
         typedef Vector3<float> Vector3f;
         typedef Vector3<double> Vector3d;
-        template class VKR::Math::Vector3<int>;
-        template class VKR::Math::Vector3<float>;
-        template class VKR::Math::Vector3<double>;
+        template struct VKR::Math::Vector3<int>;
+        template struct VKR::Math::Vector3<float>;
+        template struct VKR::Math::Vector3<double>;
     }
 
 }

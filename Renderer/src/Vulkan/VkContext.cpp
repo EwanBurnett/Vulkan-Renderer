@@ -308,6 +308,16 @@ void VKR::VkContext::DestroyAllocator() {
     vmaDestroyAllocator(m_Allocator);
 }
 
+VkResult VKR::VkContext::Map(const VmaAllocation& allocation, void** ppData)
+{
+    return vmaMapMemory(m_Allocator, allocation, ppData);
+}
+
+void VKR::VkContext::Unmap(const VmaAllocation& allocation)
+{
+    vmaUnmapMemory(m_Allocator, allocation);
+}
+
 VkQueue VKR::VkContext::GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex)
 {
     VkQueue queue = VK_NULL_HANDLE;
@@ -445,6 +455,15 @@ void VKR::VkContext::DestroyPipelineLayout(VkPipelineLayout& pipelineLayout) {
     vkDestroyPipelineLayout(m_Device, pipelineLayout, nullptr);
 }
 
+VkResult VKR::VkContext::CreateComputePipelines(const uint32_t numPipelines, const VkComputePipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines)
+{
+    return vkCreateComputePipelines(m_Device, pipelineCache, numPipelines, pCreateInfos, nullptr, pPipelines);
+}
+
+VkResult VKR::VkContext::CreateGraphicsPipelines(const uint32_t numPipelines, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines)
+{
+    return vkCreateGraphicsPipelines(m_Device, pipelineCache, numPipelines, pCreateInfos, nullptr, pPipelines);
+}
 
 void VKR::VkContext::DestroyPipeline(VkPipeline& pipeline) {
     vkDestroyPipeline(m_Device, pipeline, nullptr);
@@ -471,3 +490,25 @@ void VKR::VkContext::DestroyRenderPass(VkRenderPass& renderPass)
     vkDestroyRenderPass(m_Device, renderPass, nullptr);
 }
 
+
+VkResult VKR::VkContext::CreateFrameBuffer(const VkExtent3D extents, const VkRenderPass renderPass, const uint32_t numAttachments, const VkImageView* pAttachments, VkFramebuffer* pFrameBuffer)
+{
+    const VkFramebufferCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        nullptr, 
+        0, 
+        renderPass, 
+        numAttachments,
+        pAttachments,
+        extents.width, 
+        extents.height,
+        extents.depth
+    };
+
+    return vkCreateFramebuffer(m_Device, &createInfo, nullptr, pFrameBuffer);
+}
+
+void VKR::VkContext::DestroyFrameBuffer(VkFramebuffer& frameBuffer)
+{
+    vkDestroyFramebuffer(m_Device, frameBuffer, nullptr);
+}

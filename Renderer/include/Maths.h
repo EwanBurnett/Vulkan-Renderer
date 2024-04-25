@@ -121,7 +121,7 @@ namespace VKR {
             //Orthonormalize using the Modified Gram-Schmidt Algorithm 
             for (uint8_t i = 0; i < 3; i++) {
                 for (uint8_t j = 0; j < i; j++) {
-                    const double f = (v[j].Dot(v[i]) / v[j].Dot(v[j]));
+                    const double f = static_cast<double>(v[j].Dot(v[i]) / v[j].Dot(v[j]));
 
                     for (uint8_t k = 0; k < 3; k++) {
                         v[i].arr[k] -= f * v[j].arr[k]; 

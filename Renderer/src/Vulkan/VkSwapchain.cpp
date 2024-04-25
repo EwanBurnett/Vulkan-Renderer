@@ -63,12 +63,10 @@ const std::vector<VkImageView>& VKR::VkSwapchain::GetImageViews() const
     return m_ImageViews;
 }
 
-VkResult VKR::VkSwapchain::SetClearValue(float r, float g, float b, float a, float depth, uint32_t stencil)
+void VKR::VkSwapchain::SetClearValue(float r, float g, float b, float a, float depth, uint32_t stencil)
 {
     m_ColourClearValue.color = { r, g, b, a };
     m_DepthStencilClearValue.depthStencil = { depth, stencil };
-
-    return VK_SUCCESS;
 }
 
 

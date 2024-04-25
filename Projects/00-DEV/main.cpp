@@ -2,6 +2,7 @@
 #include <Window.h>
 #include <Timer.h>
 #include <Maths.h>
+#include <File.h>
 
 #include <Vulkan/VkContext.h>
 #include <Vulkan/VkHelpers.h>
@@ -20,7 +21,7 @@
 constexpr uint32_t WINDOW_WIDTH = 600;
 constexpr uint32_t WINDOW_HEIGHT = 400;
 
-constexpr uint32_t FRAMES_IN_FLIGHT = 3;
+constexpr uint32_t FRAMES_IN_FLIGHT = 2;
 
 void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, uint32_t& queueFamilyIndex, VkQueue& queue);
 void InitResources();
@@ -55,10 +56,23 @@ int main() {
     VkCommandPool commandPool;
     context.CreateCommandPool(graphicsQueueIndex, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &commandPool);
 
-    //Testing VMA
-    VkBuffer dbgBuffer;
-    VmaAllocation dbgBufferAlloc;
-    context.CreateBuffer(sizeof(float) * 8 * 3, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, &dbgBufferAlloc, &dbgBuffer);
+    std::vector<float> vertices = {
+        -0.6f, 0.4f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, -0.6f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.6f, 0.4f, 0.0f, 0.0f, 0.0f, 1.0f,
+    };
+
+    VkBuffer vertexBuffer;
+    VmaAllocation vertexBufferAlloc;
+    context.CreateBuffer(sizeof(float) * vertices.size(), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, &vertexBufferAlloc, &vertexBuffer);
+
+    //Copy our Vertex data into the vertex buffer. 
+    {
+        void* pData = nullptr;
+        context.Map(vertexBufferAlloc, &pData);
+        memcpy(pData, vertices.data(), sizeof(float) * vertices.size());
+        context.Unmap(vertexBufferAlloc);
+    }
 
     VkImage depthImage;
     VmaAllocation depthImageAlloc;
@@ -67,147 +81,117 @@ int main() {
     const VkFormat depthFormat = VKR::VkHelpers::FindDepthFormat(context.GetPhysicalDevice());
     context.CreateImage(VK_IMAGE_TYPE_2D, { WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, 0, &depthImageAlloc, &depthImage);
     context.CreateImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthView);
-    //TODO: Image Layout Transitions!
 
     //Pipeline Creation
     VkPipeline computePipeline;
     VkPipelineLayout computePipelineLayout;
     context.CreatePipelineLayout(0, nullptr, &computePipelineLayout);
+    VkComputePipelineCreateInfo computePipelineCreateInfo; 
 
     VkPipeline graphicsPipeline;
     VkPipelineLayout graphicsPipelineLayout;
     context.CreatePipelineLayout(0, nullptr, &graphicsPipelineLayout);
+    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo; 
 
     VkRenderPass renderPass;
     {
-        {
-            VkAttachmentDescription attachments[2];
-            attachments[0] = {
-                0,
-                VK_FORMAT_B8G8R8A8_UNORM,
-                VK_SAMPLE_COUNT_1_BIT,
-                VK_ATTACHMENT_LOAD_OP_CLEAR,
-                VK_ATTACHMENT_STORE_OP_STORE,
-                VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                VK_IMAGE_LAYOUT_UNDEFINED,
-                VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-            };
-
-            attachments[1] = {
-                0,
-                VKR::VkHelpers::FindDepthFormat(context.GetPhysicalDevice()),
-                VK_SAMPLE_COUNT_1_BIT,
-                VK_ATTACHMENT_LOAD_OP_CLEAR,
-                VK_ATTACHMENT_STORE_OP_STORE,
-                VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                VK_IMAGE_LAYOUT_UNDEFINED,
-                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-            };
-
-            VkSubpassDependency dependencies[2];
-            dependencies[0] = {
-                VK_SUBPASS_EXTERNAL,
-                0,
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                0,
-                VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                0
-            };
-
-            dependencies[1] = {
-                VK_SUBPASS_EXTERNAL,
-                0,
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_ACCESS_SHADER_READ_BIT,
-                VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                VK_DEPENDENCY_BY_REGION_BIT
-            };
-
-            VkAttachmentReference colorAttachmentRef = {
-                0,
-                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-            };
-
-            VkAttachmentReference depthAttachmentRef = {
-                1,
-                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-            };
-
-            VkSubpassDescription subpass = {
-                0,
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                0,
-                nullptr,
-                1,
-                &colorAttachmentRef,
-                nullptr,
-                &depthAttachmentRef,
-                0,
-                nullptr
-            };
-
-            context.CreateRenderPass(2, attachments, 1, &subpass, 1, dependencies, &renderPass);
-        }
-    }
-
-    VkFramebuffer frameBuffers[FRAMES_IN_FLIGHT];
-    for (int i = 0; i < 3; i++) {   //TODO: Dispatch through VkContext
-        VkImageView attachments[2] = { swapchain.GetImageViews()[i], depthView };
-        VkFramebufferCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        createInfo.pNext = nullptr;
-        createInfo.flags = 0;
-        createInfo.renderPass = renderPass;
-        createInfo.attachmentCount = 2;
-        createInfo.pAttachments = attachments;
-        createInfo.width = WINDOW_WIDTH;
-        createInfo.height = WINDOW_HEIGHT;
-        createInfo.layers = 1;
-
-        vkCreateFramebuffer(context.GetDevice(), &createInfo, nullptr, &frameBuffers[i]);
-    }
-
-
-    VkShaderModule computeShaderModule;
-    VkShaderModule vertexShaderModule;
-    VkShaderModule fragmentShaderModule;
-    {   //DEBUGGING TEMP
-        auto readShaderBlob = [](const char* fileName)  //TODO: File I/O Helpers
-        {
-            std::ifstream file(fileName, std::ios::ate | std::ios::binary);
-
-            if (!file.is_open()) {
-                throw std::runtime_error("Failed to open file!\n");
-            }
-
-            size_t fileSize = (size_t)file.tellg();
-            std::vector<char> buffer(fileSize);
-
-            file.seekg(0);
-            file.read(buffer.data(), fileSize);
-
-            file.close();
-            return buffer;
+        VkAttachmentDescription attachments[2];
+        attachments[0] = {
+            0,
+            VK_FORMAT_B8G8R8A8_UNORM,
+            VK_SAMPLE_COUNT_1_BIT,
+            VK_ATTACHMENT_LOAD_OP_CLEAR,
+            VK_ATTACHMENT_STORE_OP_STORE,
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
         };
 
+        attachments[1] = {
+            0,
+            VKR::VkHelpers::FindDepthFormat(context.GetPhysicalDevice()),
+            VK_SAMPLE_COUNT_1_BIT,
+            VK_ATTACHMENT_LOAD_OP_CLEAR,
+            VK_ATTACHMENT_STORE_OP_STORE,
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        };
 
-        auto cs_source = readShaderBlob("Shaders/cs.spirv");
-        context.CreateShaderModule(cs_source.data(), cs_source.size(), &computeShaderModule);
+        VkSubpassDependency dependencies[2];
+        dependencies[0] = {
+            VK_SUBPASS_EXTERNAL,
+            0,
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            0,
+            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            0
+        };
 
-        auto vs_source = readShaderBlob("Shaders/vs.spirv");
-        context.CreateShaderModule(vs_source.data(), vs_source.size(), &vertexShaderModule);
+        dependencies[1] = {
+            VK_SUBPASS_EXTERNAL,
+            0,
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            VK_ACCESS_SHADER_READ_BIT,
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            VK_DEPENDENCY_BY_REGION_BIT
+        };
 
-        auto fs_source = readShaderBlob("Shaders/fs.spirv");
-        context.CreateShaderModule(fs_source.data(), fs_source.size(), &fragmentShaderModule);
+        VkAttachmentReference colorAttachmentRef = {
+            0,
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        };
+
+        VkAttachmentReference depthAttachmentRef = {
+            1,
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        };
+
+        VkSubpassDescription subpass = {
+            0,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            0,
+            nullptr,
+            1,
+            &colorAttachmentRef,
+            nullptr,
+            &depthAttachmentRef,
+            0,
+            nullptr
+        };
+
+        context.CreateRenderPass(2, attachments, 1, &subpass, 1, dependencies, &renderPass);
     }
+
+    VkFramebuffer frameBuffers[8];  //Max Framebuffer count
+    for (int i = 0; i < swapchain.GetImageCount(); i++) {
+        VkImageView attachments[2] = { swapchain.GetImageViews()[i], depthView };
+        context.CreateFrameBuffer({ WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, renderPass, 2, attachments, &frameBuffers[i]);
+    }
+
+    VkShaderModule computeShaderModule;
+    std::vector<char> cs_source;
+    VKR::IO::ReadFile("Shaders/cs.spirv", cs_source);
+    context.CreateShaderModule(cs_source.data(), cs_source.size(), &computeShaderModule);
+
+    VkShaderModule vertexShaderModule;
+    std::vector<char> vs_source;
+    VKR::IO::ReadFile("Shaders/vs.spirv", vs_source);
+    context.CreateShaderModule(vs_source.data(), vs_source.size(), &vertexShaderModule);
+
+    VkShaderModule fragmentShaderModule;
+    std::vector<char> fs_source;
+    VKR::IO::ReadFile("Shaders/fs.spirv", fs_source);
+    context.CreateShaderModule(fs_source.data(), fs_source.size(), &fragmentShaderModule);
 
     VKR::VkPipelineBuilder computeBuilder;
     computeBuilder.AddShaderStage(computeShaderModule, VK_SHADER_STAGE_COMPUTE_BIT, "main");
-    computeBuilder.BuildComputePipeline(context, computePipelineLayout, &computePipeline);
+    computePipelineCreateInfo = computeBuilder.BuildComputePipeline(computePipelineLayout);
+    context.CreateComputePipelines(1, &computePipelineCreateInfo, VK_NULL_HANDLE, &computePipeline);
 
     VKR::VkPipelineBuilder builder;
     builder.AddShaderStage(vertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
@@ -215,10 +199,10 @@ int main() {
 
     VkVertexInputBindingDescription bindings[1] = {};
     bindings[0].binding = 0;
-    bindings[0].stride = sizeof(float) * 8;
+    bindings[0].stride = sizeof(float) * 6;
     bindings[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    VkVertexInputAttributeDescription attributes[3] = {};
+    VkVertexInputAttributeDescription attributes[2] = {};
     attributes[0].location = 0;
     attributes[0].binding = bindings[0].binding;
     attributes[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -226,16 +210,13 @@ int main() {
 
     attributes[1].location = 1;
     attributes[1].binding = bindings[0].binding;
-    attributes[1].format = VK_FORMAT_R32G32_SFLOAT;
+    attributes[1].format = VK_FORMAT_R32G32B32_SFLOAT;
     attributes[1].offset = sizeof(float) * 3;
 
-    attributes[2].location = 2;
-    attributes[2].binding = bindings[0].binding;
-    attributes[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributes[2].offset = sizeof(float) * 5;
-
-    builder.SetVertexInputState(1, bindings, 3, attributes);
+    builder.SetVertexInputState(1, bindings, 2, attributes);
     builder.SetInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false);
+
+    builder.SetTessellationState(0); 
 
     VkViewport viewport = {};
     viewport.x = 0;
@@ -251,7 +232,7 @@ int main() {
     builder.SetViewportState(1, &viewport, 1, &scissor);
     builder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE);
     builder.SetMSAAState(VK_SAMPLE_COUNT_1_BIT, false, false);
-    builder.SetDepthStencilState();
+    builder.SetDepthStencilState(true, true, true);
 
     VkPipelineColorBlendAttachmentState blendAttachment = {};
     blendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -265,7 +246,14 @@ int main() {
 
     builder.SetBlendState(false, VK_LOGIC_OP_COPY, 1, &blendAttachment);
 
-    builder.BuildGraphicsPipeline(context, graphicsPipelineLayout, renderPass, 0, &graphicsPipeline);
+    const std::vector<VkDynamicState> dynamicStates = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+    builder.SetDynamicState(dynamicStates.size(), dynamicStates.data()); 
+
+    graphicsPipelineCreateInfo = builder.BuildGraphicsPipeline(graphicsPipelineLayout, renderPass, 0);
+    context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &graphicsPipeline);
 
     std::vector<VkCommandBuffer> commands(FRAMES_IN_FLIGHT);
 
@@ -368,9 +356,11 @@ int main() {
                     clearValues
                 };
                 vkCmdBeginRenderPass(cmd, &rpb, VK_SUBPASS_CONTENTS_INLINE);
+                vkCmdSetViewport(cmd, 0, 1, &viewport);     //Dynamic State
+                vkCmdSetScissor(cmd, 0, 1, &scissor); 
                 vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
                 VkDeviceSize offsets = 0;
-                vkCmdBindVertexBuffers(cmd, 0, 1, &dbgBuffer, &offsets);
+                vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, &offsets);
                 vkCmdDraw(cmd, 3, 1, 0, 0);
 
                 vkCmdEndRenderPass(cmd);
@@ -380,7 +370,7 @@ int main() {
             {
                 EASY_BLOCK("Compute Queue Submission", profiler::colors::Red500);
 
-                VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
+                VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
 
                 const VkSubmitInfo submitInfo = {
                     VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -426,7 +416,7 @@ int main() {
 
     context.DestroyImage(depthImage, depthImageAlloc);
     context.DestroyImageView(depthView);
-    context.DestroyBuffer(dbgBuffer, dbgBufferAlloc);
+    context.DestroyBuffer(vertexBuffer, vertexBufferAlloc);
     context.DestroyCommandPool(commandPool);
 
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {

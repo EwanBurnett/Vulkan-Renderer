@@ -43,6 +43,9 @@ namespace VKR {
         VkResult CreateAllocator(); 
         void DestroyAllocator(); 
 
+        VkResult Map(const VmaAllocation& allocation, void** ppData); 
+        void Unmap(const VmaAllocation& allocation); 
+
         //Device Level Functions
         VkQueue GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex);
 
@@ -75,15 +78,18 @@ namespace VKR {
         VkResult CreateDescriptorPool(const uint32_t uniformBufferCount, const uint32_t storageBufferCount, const uint32_t samplerCount, VkDescriptorPool* pDescriptorPool);
         void DestroyDescriptorPool(VkDescriptorPool& descriptorPool);
 
-
         VkResult CreatePipelineLayout(const uint32_t numDescriptors, VkDescriptorSetLayout* pDescriptors, VkPipelineLayout* pPipelineLayout);
         void DestroyPipelineLayout(VkPipelineLayout& pipelineLayout);
 
+        VkResult CreateComputePipelines(const uint32_t numPipelines, const VkComputePipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines);
+        VkResult CreateGraphicsPipelines(const uint32_t numPipelines, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines);
         void DestroyPipeline(VkPipeline& pipeline); 
 
         VkResult CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass);
         void DestroyRenderPass(VkRenderPass& renderPass);
 
+        VkResult CreateFrameBuffer(const VkExtent3D extents, const VkRenderPass renderPass, const uint32_t numAttachments, const VkImageView* pAttachments, VkFramebuffer* pFrameBuffer);
+        void DestroyFrameBuffer(VkFramebuffer& frameBuffer);
 
     private:
 #ifdef DEBUG

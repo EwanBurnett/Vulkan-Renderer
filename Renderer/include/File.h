@@ -8,12 +8,13 @@
 */
 #include <cstdio> 
 #include "Types.h"
-#include <vector> //TODO: Replace with Fixed Vector
+#include <vector> 
 
 namespace VKR {
     namespace IO {
 
-#if defined(VKR_WIN32)
+        /*
+#ifdef _WIN32
         //Windows specific aliasing
         typedef struct __FILETIME {
             uint64_t dwLowDateTime;
@@ -29,21 +30,41 @@ namespace VKR {
 
         struct Directory {
             char path[MAX_FILEPATH_LENGTH];
-#if defined(VKR_WIN32)
+#ifdef _WIN32
             void* osHandle;
 #endif
         };
+        */
 
+        /**
+         * @brief Tests whether a file already exists or not.
+         * @param filePath A path to a file to test. 
+         * @return true if the given file can be found, false otherwise.  
+        */
         const bool FileExists(const char* filePath);
 
+        /**
+         * @brief Reads a binary file into a blob.
+         * @param filePath Path to the file to read.
+         * @param blob A byte array to hold the file's contents. 
+         * @return SUCCESS on successful read, FAILED otherwise. 
+        */
         Status ReadFile(const char* filePath, std::vector<char>& blob);
-        Status WriteFile(const char* filePath, const char* pData, const size_t size);
+
+        /**
+         * @brief Attempts to Write data into a given file. 
+         * @param filePath Path to the file to write into. 
+         * @param pData pointer to the data to write. 
+         * @param size number of bytes to write. 
+         * @return SUCCESS on successful write, FAILED otherwise. 
+        */
+        Status WriteFile(const char* filePath, const void* pData, const size_t size);
 
 
         Status CreateDirectory(const char* dirPath);
         Status RemoveDirectory(const char* dirPath);
 
-        const Directory CurrentDirectory();
+        //const Directory CurrentDirectory();
 
 
 
