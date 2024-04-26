@@ -55,7 +55,7 @@ VkBufferCreateInfo VKR::VkInit::MakeBufferCreateInfo(const uint64_t size, const 
 }
 
 
-VkImageCreateInfo VKR::VkInit::MakeImageCreateInfo(const VkExtent3D extents, const VkImageType type, const VkFormat format, const VkImageTiling tiling, const VkImageUsageFlags usage, const VkSharingMode sharingMode, const uint32_t queueFamilyIndexCount, const uint32_t* pQueueFamilyIndices, const uint32_t flags)
+VkImageCreateInfo VKR::VkInit::MakeImageCreateInfo(const VkExtent3D extents, const VkImageType type, const VkFormat format, const VkSampleCountFlagBits sampleCount, const VkImageTiling tiling, const VkImageUsageFlags usage, const VkSharingMode sharingMode, const uint32_t queueFamilyIndexCount, const uint32_t* pQueueFamilyIndices, const uint32_t flags)
 {
     return {
         VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -66,7 +66,7 @@ VkImageCreateInfo VKR::VkInit::MakeImageCreateInfo(const VkExtent3D extents, con
         extents,
         1,  //Mip Levels
         1,  //Array Layers
-        VK_SAMPLE_COUNT_1_BIT,
+        sampleCount,
         tiling,
         usage,
         sharingMode,

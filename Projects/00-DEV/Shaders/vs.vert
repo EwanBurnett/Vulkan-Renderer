@@ -24,6 +24,7 @@ layout(location = 1) in vec3 inColour;
 layout(location = 0) out vec3 fragColour; 
 
 void main() {
-    gl_Position = (pushConstants.w * ubo.vp) * vec4(inPosition, 1.0);
+    mat4 wvp = ubo.vp * pushConstants.w;
+    gl_Position = wvp * vec4(inPosition, 1.0);
     fragColour = inColour;
 }

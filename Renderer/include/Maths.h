@@ -1,13 +1,11 @@
 #ifndef __VKRENDERER_MATH_H
 #define __VKRENDERER_MATH_H
-
 /**
 *   @file Maths.h
 *   @brief Maths Utilities and Helpers
 *   @author Ewan Burnett (EwanBurnettSK@outlook.com)
 *   @date 2024/04/23
 */
-
 #include <limits>
 #include <cmath>
 #include "Maths/Vector2.h"
@@ -114,6 +112,13 @@ namespace VKR {
         }
 
 
+        /**
+         * @brief Orthonormalizes 3 Vectors using the Modified Gram-Schmidt Algorithm. 
+         * @tparam T 
+         * @param a 
+         * @param b 
+         * @param c 
+        */
         template <typename T> 
         inline void Orthonormalize(Vector3<T>& a, Vector3<T>& b, Vector3<T>& c) {
             Vector3<T> v[3] = { a, b, c };

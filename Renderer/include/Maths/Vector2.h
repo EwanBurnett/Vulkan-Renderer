@@ -11,7 +11,7 @@
 namespace VKR {
     namespace Math {
         /**
-         * @brief A Two-Component continuous Vector
+         * @brief A Two-Component contiguous Vector
          * @tparam T The type to contain within the vector. This is stored as a union, with {x, y}, {u, v} and array index members.
          * @note The size of a Vector2 is always sizeof(T) * 2.
          * @remark Data alignment is implementation defined.

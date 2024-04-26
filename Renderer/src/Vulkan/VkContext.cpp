@@ -387,10 +387,10 @@ void VKR::VkContext::DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation) 
     vmaDestroyBuffer(m_Allocator, buffer, allocation);
 }
 
-VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage) const
+VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D extents, const VkSampleCountFlagBits sampleCount, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage) const
 {
     EASY_FUNCTION(profiler::colors::Red500);
-    const VkImageCreateInfo createInfo = VkInit::MakeImageCreateInfo(extents, type, format, tiling, usage);
+    const VkImageCreateInfo createInfo = VkInit::MakeImageCreateInfo(extents, type, format, sampleCount, tiling, usage);
 
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.flags = memoryFlags;

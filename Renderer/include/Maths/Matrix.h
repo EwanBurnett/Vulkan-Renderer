@@ -1,23 +1,26 @@
 #ifndef __MATH_MATRIX_H
 #define __MATH_MATRIX_H
-#include "Vector3.h"
-#include "Vector4.h"
-
-#include <easy/profiler.h>
-
 /**
 *   @file Matrix.h
+*   @brief Matrix Helpers
 *   @author Ewan Burnett (EwanBurnettSK@outlook.com)
 *   @date 2024/04/24
 */
+#include "Vector3.h"
+#include "Vector4.h"
+#include <easy/profiler.h>
 
 namespace VKR {
     namespace Math {
 
+        /**
+         * @brief A 4x4 Matrix of elements.
+         * @tparam T Type for the internal matrix elements. float by default. 
+        */
         template<typename T = float>
         struct Matrix4x4 {
             Matrix4x4() {
-
+                //memset(arr, 0, sizeof(T) * 16); 
             }
 
             union {
@@ -75,8 +78,9 @@ namespace VKR {
 
 
             /**
-             * @brief Builds a 4x4 Translation Matrix from a Vector.
-             * @param translation
+             * @brief Builds a 4x4 Translation Matrix from a Vector
+             * @param translation 
+             * @remarks 
              * @return
             */
             inline static constexpr Matrix4x4 Translation(const Vector3<T> translation) {
@@ -185,10 +189,12 @@ namespace VKR {
 
                 const double a = tan(fovRadians / 2.0);
 
-                mat.arr[0] = 1.0 / aspectRatio * a;
+                mat.arr[0] = 1.0 / (aspectRatio * a);
                 mat.arr[5] = 1.0 / a;
                 mat.arr[10] = farPlane / (farPlane - nearPlane);
-                mat.arr[14] = -nearPlane * mat.arr[10];     //farPlane / (farPlane - nearPlane); 
+                mat.arr[11] = 1.0; 
+                mat.arr[14] = -farPlane * nearPlane / (farPlane - nearPlane);
+                mat.arr[15] = 0.0; 
 
                 return mat;
             }

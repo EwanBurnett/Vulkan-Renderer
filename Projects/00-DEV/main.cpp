@@ -23,6 +23,8 @@ constexpr uint32_t FRAMES_IN_FLIGHT = 2;
 
 constexpr uint32_t OBJECT_COUNT = 1;
 
+constexpr VkSampleCountFlagBits MSAA_SAMPLES = VK_SAMPLE_COUNT_4_BIT;
+
 void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, uint32_t& queueFamilyIndex, VkQueue& queue);
 void ShutdownVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain);
 
@@ -90,29 +92,70 @@ int main() {
     }
 
     std::vector<float> vertices = {
+        -1.0, -1.0, -1.0, 0.0, 0.0, 0.0,
+        1.0, -1.0, -1.0, 0.0, 0.0, 1.0,
+        1.0, 1.0, -1.0, 0.0, 1.0, 0.0,
+        -1.0, 1.0, -1.0, 0.0, 1.0, 1.0,
+        -1.0, -1.0, 1.0, 1.0, 0.0, 0.0,
+        1.0, -1.0, 1.0, 1.0, 0.0, 1.0,
+        1.0, 1.0, 1.0, 1.0, 1.0, 0.0,
+        -1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+    };
+
+    std::vector<uint32_t> indices = {
+        0, 1, 3,
+        3, 1, 2,
+        1, 5, 2,
+        2, 5, 6,
+        5, 4, 6,
+        6, 4, 7,
+        4, 0, 7,
+        7, 0, 3,
+        3, 2, 7,
+        7, 2, 6,
+        4, 5, 0,
+        0, 5, 1
+    };
+    /*
+    std::vector<float> vertices = {
         -0.6f, 0.4f, 0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, -0.6f, 0.0f, 0.0f, 1.0f, 0.0f,
         0.6f, 0.4f, 0.0f, 0.0f, 0.0f, 1.0f,
     };
+    */
 
     VkBuffer vertexBuffer;
     VmaAllocation vertexBufferAlloc;
     context.CreateBuffer(sizeof(float) * vertices.size(), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, &vertexBufferAlloc, &vertexBuffer);
 
-    //Copy our Vertex data into the vertex buffer. 
+    VkBuffer indexBuffer;
+    VmaAllocation indexBufferAlloc;
+    context.CreateBuffer(sizeof(uint32_t) * indices.size(), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, &indexBufferAlloc, &indexBuffer);
+
+
+    //Copy our Vertex and Index data into their buffers. 
     {
         void* pData = nullptr;
         context.Map(vertexBufferAlloc, &pData);
         memcpy(pData, vertices.data(), sizeof(float) * vertices.size());
         context.Unmap(vertexBufferAlloc);
+
+        context.Map(indexBufferAlloc, &pData);
+        memcpy(pData, indices.data(), sizeof(uint32_t) * indices.size());
+        context.Unmap(indexBufferAlloc);
     }
+    VkImage renderTargetImage;
+    VmaAllocation renderTargetImageAlloc;
+    VkImageView renderTargetView;
+    context.CreateImage(VK_IMAGE_TYPE_2D, { WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, MSAA_SAMPLES, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, 0, &renderTargetImageAlloc, &renderTargetImage);
+    context.CreateImageView(renderTargetImage, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, &renderTargetView);
 
     VkImage depthImage;
     VmaAllocation depthImageAlloc;
     VkImageView depthView;
 
     const VkFormat depthFormat = VKR::VkHelpers::FindDepthFormat(context.GetPhysicalDevice());
-    context.CreateImage(VK_IMAGE_TYPE_2D, { WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, 0, &depthImageAlloc, &depthImage);
+    context.CreateImage(VK_IMAGE_TYPE_2D, { WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, MSAA_SAMPLES, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, 0, &depthImageAlloc, &depthImage);
     context.CreateImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthView);
 
     //Pipeline Creation
@@ -146,8 +189,32 @@ int main() {
 
     VkRenderPass renderPass;
     {
-        VkAttachmentDescription attachments[2];
+        VkAttachmentDescription attachments[3];
         attachments[0] = {
+            0,
+            VK_FORMAT_B8G8R8A8_UNORM,
+            MSAA_SAMPLES,
+            VK_ATTACHMENT_LOAD_OP_CLEAR,
+            VK_ATTACHMENT_STORE_OP_STORE,
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        };
+
+        attachments[1] = {
+            0,
+            VKR::VkHelpers::FindDepthFormat(context.GetPhysicalDevice()),
+            MSAA_SAMPLES,
+            VK_ATTACHMENT_LOAD_OP_CLEAR,
+            VK_ATTACHMENT_STORE_OP_STORE,
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        };
+
+        attachments[2] = {
             0,
             VK_FORMAT_B8G8R8A8_UNORM,
             VK_SAMPLE_COUNT_1_BIT,
@@ -159,17 +226,6 @@ int main() {
             VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
         };
 
-        attachments[1] = {
-            0,
-            VKR::VkHelpers::FindDepthFormat(context.GetPhysicalDevice()),
-            VK_SAMPLE_COUNT_1_BIT,
-            VK_ATTACHMENT_LOAD_OP_CLEAR,
-            VK_ATTACHMENT_STORE_OP_STORE,
-            VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        };
 
         VkSubpassDependency dependencies[2];
         dependencies[0] = {
@@ -202,6 +258,13 @@ int main() {
             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
         };
 
+
+        VkAttachmentReference colorAttachmentResolveRef = {
+            2,
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        };
+
+
         VkSubpassDescription subpass = {
             0,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -209,19 +272,19 @@ int main() {
             nullptr,
             1,
             &colorAttachmentRef,
-            nullptr,
+            &colorAttachmentResolveRef,
             &depthAttachmentRef,
             0,
             nullptr
         };
 
-        context.CreateRenderPass(2, attachments, 1, &subpass, 1, dependencies, &renderPass);
+        context.CreateRenderPass(3, attachments, 1, &subpass, 1, dependencies, &renderPass);
     }
 
     VkFramebuffer frameBuffers[8];  //Max Framebuffer count
     for (int i = 0; i < swapchain.GetImageCount(); i++) {
-        VkImageView attachments[2] = { swapchain.GetImageViews()[i], depthView };
-        context.CreateFrameBuffer({ WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, renderPass, 2, attachments, &frameBuffers[i]);
+        VkImageView attachments[3] = { renderTargetView, depthView ,swapchain.GetImageViews()[i] };
+        context.CreateFrameBuffer({ WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, renderPass, 3, attachments, &frameBuffers[i]);
     }
 
     VkShaderModule computeShaderModule;
@@ -282,7 +345,7 @@ int main() {
     scissor.extent = { 600, 400 };
     builder.SetViewportState(1, &viewport, 1, &scissor);
     builder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE);
-    builder.SetMSAAState(VK_SAMPLE_COUNT_1_BIT, false, false);
+    builder.SetMSAAState(MSAA_SAMPLES, false, false);
     builder.SetDepthStencilState(true, true, true);
 
     VkPipelineColorBlendAttachmentState blendAttachment = {};
@@ -344,8 +407,8 @@ int main() {
         {
             EASY_BLOCK("Update", profiler::colors::Amber400);
             //Compute View-Projection matrix for this frame. 
-            const VKR::Math::Matrix4x4<> p = VKR::Math::Matrix4x4<>::ProjectionFoVDegrees(90.0, (double)WINDOW_WIDTH / (double)WINDOW_HEIGHT, 0.001, 100000.0);
-            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View({ 0, 0, -1 });  //TODO: Const Operators
+            VKR::Math::Matrix4x4<> p = VKR::Math::Matrix4x4<>::ProjectionFoVDegrees(90.0, (double)WINDOW_WIDTH / (double)WINDOW_HEIGHT, 0.001, 100000.0);
+            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View({ 0, 0, -5 });  //TODO: Const Operators
 
             viewProjection = v * p;
 
@@ -356,9 +419,9 @@ int main() {
                 static float rot = 0.0f;
                 rot += 10 * dtms;
 
-                VKR::Math::Matrix4x4<> x = VKR::Math::Matrix4x4<>::XRotationFromDegrees(0);
-                VKR::Math::Matrix4x4<> y = VKR::Math::Matrix4x4<>::YRotationFromDegrees(0);
-                VKR::Math::Matrix4x4<> z = VKR::Math::Matrix4x4<>::ZRotationFromDegrees(rot);
+                VKR::Math::Matrix4x4<> x = VKR::Math::Matrix4x4<>::XRotationFromDegrees(rot / 2.0);
+                VKR::Math::Matrix4x4<> y = VKR::Math::Matrix4x4<>::YRotationFromDegrees(rot);
+                VKR::Math::Matrix4x4<> z = VKR::Math::Matrix4x4<>::ZRotationFromDegrees(0);
 
                 VKR::Math::Matrix4x4<> t = VKR::Math::Matrix4x4<>::Translation({ 0, 0, 0 }); //TODO: Template Argument Static Typecasting
 
@@ -395,14 +458,14 @@ int main() {
             {
                 EASY_BLOCK("Render Pass", profiler::colors::Red500);
                 vkCmdUpdateBuffer(cmd, uniformBuffer, 0, sizeof(VKR::Math::Matrix4x4<float>), &viewProjection);
-                VkClearValue clearValues[2] = { swapchain.GetColourClearValue(), swapchain.GetDepthStencilClearValue() };
+                VkClearValue clearValues[3] = { swapchain.GetColourClearValue(), swapchain.GetDepthStencilClearValue(), swapchain.GetColourClearValue()};
                 VkRenderPassBeginInfo rpb = {
                     VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                     nullptr,
                     renderPass,
                     frameBuffers[imageIdx],
                     {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT},
-                    2,
+                    3,
                     clearValues
                 };
                 vkCmdBeginRenderPass(cmd, &rpb, VK_SUBPASS_CONTENTS_INLINE);
@@ -412,9 +475,10 @@ int main() {
                 vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
                 VkDeviceSize offsets = 0;
                 vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, &offsets);
+                vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
                 for (uint32_t i = 0; i < OBJECT_COUNT; i++) {
                     vkCmdPushConstants(cmd, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VKR::Math::Matrix4x4<>), &worldMatrices[i]);
-                    vkCmdDraw(cmd, 3, 1, 0, 0);
+                    vkCmdDrawIndexed(cmd, 36, 1, 0, 0, 0);
                 }
                 vkCmdEndRenderPass(cmd);
 
@@ -477,8 +541,11 @@ int main() {
         vkDestroyFramebuffer(context.GetDevice(), frameBuffers[i], nullptr);
     }
 
-    context.DestroyImage(depthImage, depthImageAlloc);
+    context.DestroyImageView(renderTargetView); 
+    context.DestroyImage(renderTargetImage, renderTargetImageAlloc); 
     context.DestroyImageView(depthView);
+    context.DestroyImage(depthImage, depthImageAlloc);
+    context.DestroyBuffer(indexBuffer, indexBufferAlloc);
     context.DestroyBuffer(vertexBuffer, vertexBufferAlloc);
     context.DestroyBuffer(uniformBuffer, uniformBufferAlloc);
 

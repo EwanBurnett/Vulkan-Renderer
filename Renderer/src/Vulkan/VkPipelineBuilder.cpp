@@ -86,8 +86,6 @@ const VkGraphicsPipelineCreateInfo VKR::VkPipelineBuilder::BuildGraphicsPipeline
           nullptr, //TODO: Pipeline Derivatives
           -1
     };
-
-    //return vkCreateGraphicsPipelines(context.GetDevice(), nullptr, 1, &createInfo, nullptr, pPipeline);
 }
 
 const VkComputePipelineCreateInfo VKR::VkPipelineBuilder::BuildComputePipeline(const VkPipelineLayout layout) const
@@ -110,8 +108,6 @@ const VkComputePipelineCreateInfo VKR::VkPipelineBuilder::BuildComputePipeline(c
         nullptr,    //TODO: Pipeline Derivatives
         -1,
     };
-
-    //return vkCreateComputePipelines(context.GetDevice(), nullptr, 1, &createInfo, nullptr, pPipeline); //TODO: Pipeline Cache
 }
 
 void VKR::VkPipelineBuilder::AddShaderStage(const VkShaderModule shaderModule, const VkShaderStageFlagBits stage, const char* entryPoint)
@@ -193,7 +189,7 @@ void VKR::VkPipelineBuilder::SetBlendState(const bool logicOpEnable, const VkLog
 
 void VKR::VkPipelineBuilder::SetDynamicState(const uint32_t numDynamicStates, const VkDynamicState* pDynamicStates)
 {
-    m_DynamicState.dynamicStateCount = numDynamicStates; 
-    m_DynamicState.pDynamicStates = pDynamicStates; 
+    m_DynamicState.dynamicStateCount = numDynamicStates;
+    m_DynamicState.pDynamicStates = pDynamicStates;
 }
 

@@ -1,21 +1,19 @@
 #ifndef __MATH_VECTOR3_H
 #define __MATH_VECTOR3_H
-
 /**
 *   @file Vector3.h
+*   @brief Vector3 Helpers
 *   @author Ewan Burnett (EwanBurnettSK@outlook.com)
 *   @date 2024/04/23
 */
-
-
 #include <type_traits>
 
 namespace VKR {
     namespace Math {
         /**
-         * @brief A Two-Component continuous Vector
-         * @tparam T The type to contain within the vector. This is stored as a union, with {x, y}, {u, v} and array index members.
-         * @note The size of a Vector2 is always sizeof(T) * 2.
+         * @brief A Three-Component contiguous Vector
+         * @tparam T The type to contain within the vector. This is stored as a union, with {x, y, z}, {u, v, w} and array index members.
+         * @note The size of a Vector3 is always sizeof(T) * 3.
          * @remark Data alignment is implementation defined.
         */
         template<typename T>

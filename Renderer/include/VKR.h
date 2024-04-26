@@ -14,7 +14,16 @@
 #endif
 
 namespace VKR {
+    /**
+     * @brief Initializes VKR. 
+     * @return 
+    */
     Status Init();
+
+    /**
+     * @brief Shuts down VKR. 
+     * @return 
+    */
     Status Shutdown();
 }
 #endif

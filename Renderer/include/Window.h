@@ -13,7 +13,19 @@ namespace VKR {
 
     class Window {
     public:
+        /**
+         * @brief Creates a Window. 
+         * @param title 
+         * @param width 
+         * @param height 
+         * @return 
+        */
         Status Create(const char* title, const uint32_t width, const uint32_t height);
+
+        /**
+         * @brief Destroys a Window. 
+         * @return 
+        */
         Status Destroy();
 
         void Show(); 
@@ -26,6 +38,10 @@ namespace VKR {
 
         void SetTitle(const char* title);
 
+        /**
+         * @brief Returns a window's internal GLFW Handle. 
+         * @return 
+        */
         GLFWwindow* GLFWHandle() const;
 
         /**

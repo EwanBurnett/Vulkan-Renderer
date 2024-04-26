@@ -58,7 +58,7 @@ namespace VKR {
         VkResult CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer) const;
         void DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation) const;
 
-        VkResult CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage) const;
+        VkResult CreateImage(const VkImageType type, const VkExtent3D extents, const VkSampleCountFlagBits sampleCount, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage) const;
         void DestroyImage(VkImage& image, VmaAllocation& allocation) const;
 
         VkResult CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pImageView) const;

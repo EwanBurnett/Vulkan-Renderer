@@ -6,7 +6,6 @@
 *   @author Ewan Burnett (EwanBurnettSK@Outlook.com)
 *   @date 2024/04/23
 */
-
 #include <cstdio>
 #include <cstdarg>
 
@@ -16,6 +15,9 @@
 #endif
 
 namespace VKR {
+    /**
+     * @brief Utility Class for Console message logging. 
+    */
     class Log {
     public:
         enum class ELogColour {

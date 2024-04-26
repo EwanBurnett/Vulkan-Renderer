@@ -21,7 +21,7 @@ VKR::Status VKR::Shutdown()
     EASY_FUNCTION(profiler::colors::Grey600);
     
     glfwTerminate();
-    //profiler::stopListen();
+    profiler::stopListen();
     //profiler::dumpBlocksToFile("PROFILE_RESULT.prof");
 
     return Status();

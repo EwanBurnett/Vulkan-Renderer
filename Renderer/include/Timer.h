@@ -16,16 +16,40 @@ namespace VKR {
     public:
         Timer(); 
 
+        /**
+         * @brief Returns the Interval between subsequent calls to Tick(). 
+         * @tparam period the resolution of DeltaTime. 
+         * @return 
+        */
         template<typename period = std::chrono::nanoseconds>
         double DeltaTime() const;
 
+        /**
+         * @brief Returns the total running duration of this timer. 
+         * @tparam period 
+         * @return 
+        */
         template<typename period = std::chrono::nanoseconds> 
         double Duration() const; 
 
+        /**
+         * @brief Updates the timer. 
+        */
         void Tick(); 
 
-        void Start(); 
+        /**
+         * @brief 
+        */
+        void Start();
+
+        /**
+         * @brief 
+        */
         void Stop(); 
+
+        /**
+         * @brief 
+        */
         void Reset(); 
     private:
         bool m_bIsRunning; 
