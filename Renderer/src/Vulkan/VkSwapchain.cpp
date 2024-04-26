@@ -26,7 +26,7 @@ VkResult VKR::VkSwapchain::Create(const VkContext& context, const Window* pWindo
 
     AcquireSwapchainImages(context);
 
-    SetClearValue(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0xff);
+    SetClearValue(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0x00);
     return VK_SUCCESS;
 }
 

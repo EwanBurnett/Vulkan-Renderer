@@ -190,7 +190,7 @@ namespace VKR {
                 const double a = tan(fovRadians / 2.0);
 
                 mat.arr[0] = 1.0 / (aspectRatio * a);
-                mat.arr[5] = 1.0 / a;
+                mat.arr[5] = -(1.0 / a);
                 mat.arr[10] = farPlane / (farPlane - nearPlane);
                 mat.arr[11] = 1.0; 
                 mat.arr[14] = -farPlane * nearPlane / (farPlane - nearPlane);

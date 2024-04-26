@@ -19,9 +19,9 @@
 constexpr uint32_t WINDOW_WIDTH = 600;
 constexpr uint32_t WINDOW_HEIGHT = 400;
 
-constexpr uint32_t FRAMES_IN_FLIGHT = 2;
+constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 
-constexpr uint32_t OBJECT_COUNT = 1;
+constexpr uint32_t OBJECT_COUNT = 100;
 
 constexpr VkSampleCountFlagBits MSAA_SAMPLES = VK_SAMPLE_COUNT_4_BIT;
 
@@ -103,18 +103,18 @@ int main() {
     };
 
     std::vector<uint32_t> indices = {
-        0, 1, 3,
-        3, 1, 2,
-        1, 5, 2,
-        2, 5, 6,
-        5, 4, 6,
-        6, 4, 7,
-        4, 0, 7,
-        7, 0, 3,
-        3, 2, 7,
-        7, 2, 6,
-        4, 5, 0,
-        0, 5, 1
+        0, 3, 1,
+        3, 2, 1,
+        1, 2, 5,
+        2, 6, 5,
+        5, 6, 4,
+        6, 7, 4,
+        4, 7, 0,
+        7, 3, 0,
+        3, 7, 2,
+        7, 6, 2,
+        4, 0, 5,
+        0, 1, 5,
     };
     /*
     std::vector<float> vertices = {
@@ -182,10 +182,11 @@ int main() {
         sizeof(VKR::Math::Matrix4x4<float>)
     };
 
+    VkPipeline gridPipeline;
+
     VkPipeline graphicsPipeline;
     VkPipelineLayout graphicsPipelineLayout;
     context.CreatePipelineLayout(1, &descriptorSetLayout, 1, &pushConstants, &graphicsPipelineLayout);
-    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
 
     VkRenderPass renderPass;
     {
@@ -227,25 +228,15 @@ int main() {
         };
 
 
-        VkSubpassDependency dependencies[2];
+        VkSubpassDependency dependencies[1];
         dependencies[0] = {
             VK_SUBPASS_EXTERNAL,
             0,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
             0,
-            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
             0
-        };
-
-        dependencies[1] = {
-            VK_SUBPASS_EXTERNAL,
-            0,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            VK_ACCESS_SHADER_READ_BIT,
-            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            VK_DEPENDENCY_BY_REGION_BIT
         };
 
         VkAttachmentReference colorAttachmentRef = {
@@ -287,25 +278,47 @@ int main() {
         context.CreateFrameBuffer({ WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, renderPass, 3, attachments, &frameBuffers[i]);
     }
 
+    VkViewport viewport = {};
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.width = (float)WINDOW_WIDTH;
+    viewport.height = (float)WINDOW_HEIGHT;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    VkRect2D scissor = {};
+    scissor.offset = { 0, 0 };
+    scissor.extent = { WINDOW_WIDTH, WINDOW_HEIGHT };
+
+
     VkShaderModule computeShaderModule;
-    std::vector<char> cs_source;
-    VKR::IO::ReadFile("Shaders/cs.spirv", cs_source);
-    context.CreateShaderModule(cs_source.data(), cs_source.size(), &computeShaderModule);
-
-    VkShaderModule vertexShaderModule;
-    std::vector<char> vs_source;
-    VKR::IO::ReadFile("Shaders/vs.spirv", vs_source);
-    context.CreateShaderModule(vs_source.data(), vs_source.size(), &vertexShaderModule);
-
-    VkShaderModule fragmentShaderModule;
-    std::vector<char> fs_source;
-    VKR::IO::ReadFile("Shaders/fs.spirv", fs_source);
-    context.CreateShaderModule(fs_source.data(), fs_source.size(), &fragmentShaderModule);
+    {
+        std::vector<char> cs_source;
+        VKR::IO::ReadFile("Shaders/cs.spirv", cs_source);
+        context.CreateShaderModule(cs_source.data(), cs_source.size(), &computeShaderModule);
+    }
 
     VKR::VkPipelineBuilder computeBuilder;
     computeBuilder.AddShaderStage(computeShaderModule, VK_SHADER_STAGE_COMPUTE_BIT, "main");
     computePipelineCreateInfo = computeBuilder.BuildComputePipeline(computePipelineLayout);
     context.CreateComputePipelines(1, &computePipelineCreateInfo, pipelineCache, &computePipeline);
+
+
+
+    VkShaderModule vertexShaderModule;
+    {
+        std::vector<char> vs_source;
+        VKR::IO::ReadFile("Shaders/vs.spirv", vs_source);
+        context.CreateShaderModule(vs_source.data(), vs_source.size(), &vertexShaderModule);
+    }
+
+    VkShaderModule fragmentShaderModule;
+    {
+        std::vector<char> fs_source;
+        VKR::IO::ReadFile("Shaders/fs.spirv", fs_source);
+        context.CreateShaderModule(fs_source.data(), fs_source.size(), &fragmentShaderModule);
+    }
+
 
     VKR::VkPipelineBuilder builder;
     builder.AddShaderStage(vertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
@@ -332,17 +345,6 @@ int main() {
 
     builder.SetTessellationState(0);
 
-    VkViewport viewport = {};
-    viewport.x = 0;
-    viewport.y = 0;
-    viewport.width = (float)WINDOW_WIDTH;
-    viewport.height = (float)WINDOW_HEIGHT;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-
-    VkRect2D scissor = {};
-    scissor.offset = { 0, 0 };
-    scissor.extent = { 600, 400 };
     builder.SetViewportState(1, &viewport, 1, &scissor);
     builder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE);
     builder.SetMSAAState(MSAA_SAMPLES, false, false);
@@ -350,12 +352,12 @@ int main() {
 
     VkPipelineColorBlendAttachmentState blendAttachment = {};
     blendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    blendAttachment.blendEnable = VK_FALSE;
-    blendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    blendAttachment.blendEnable = VK_TRUE;
+    blendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    blendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    blendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
     blendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     blendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-    blendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-    blendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     blendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
     builder.SetBlendState(false, VK_LOGIC_OP_COPY, 1, &blendAttachment);
@@ -366,9 +368,40 @@ int main() {
     };
     builder.SetDynamicState(dynamicStates.size(), dynamicStates.data());
 
-    graphicsPipelineCreateInfo = builder.BuildGraphicsPipeline(graphicsPipelineLayout, renderPass, 0);
-    context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, pipelineCache, &graphicsPipeline);
+    VkShaderModule gridVertexShaderModule;
+    {
+        std::vector<char> grid_vs_source;
+        VKR::IO::ReadFile("Shaders/vs_grid.spirv", grid_vs_source);
+        context.CreateShaderModule(grid_vs_source.data(), grid_vs_source.size(), &gridVertexShaderModule);
+    }
 
+    VkShaderModule gridFragmentShaderModule;
+    {
+        std::vector<char> grid_fs_source;
+        VKR::IO::ReadFile("Shaders/fs_grid.spirv", grid_fs_source);
+        context.CreateShaderModule(grid_fs_source.data(), grid_fs_source.size(), &gridFragmentShaderModule);
+    }
+
+    VKR::VkPipelineBuilder gridBuilder;
+    gridBuilder.AddShaderStage(gridVertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
+    gridBuilder.AddShaderStage(gridFragmentShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT, "main");
+    gridBuilder.SetVertexInputState(0, nullptr, 0, nullptr);
+    gridBuilder.SetInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false);
+    gridBuilder.SetTessellationState(0);
+    gridBuilder.SetViewportState(1, &viewport, 1, &scissor);
+    gridBuilder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+    gridBuilder.SetMSAAState(MSAA_SAMPLES, false, false);
+    gridBuilder.SetDepthStencilState(false, true, false);
+
+    gridBuilder.SetBlendState(false, VK_LOGIC_OP_COPY, 1, &blendAttachment);
+    gridBuilder.SetDynamicState(dynamicStates.size(), dynamicStates.data());
+
+    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = builder.BuildGraphicsPipeline(graphicsPipelineLayout, renderPass, 0);
+
+
+    context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, pipelineCache, &graphicsPipeline);
+    graphicsPipelineCreateInfo = gridBuilder.BuildGraphicsPipeline(graphicsPipelineLayout, renderPass, 0);
+    context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, pipelineCache, &gridPipeline);
     std::vector<VkCommandBuffer> commands(FRAMES_IN_FLIGHT);
 
     VKR::Timer timer;
@@ -406,9 +439,31 @@ int main() {
         }
         {
             EASY_BLOCK("Update", profiler::colors::Amber400);
+            static VKR::Math::Vector3f eyePos;
+            if (glfwGetKey(window.GLFWHandle(), GLFW_KEY_W)) {
+                eyePos.z += 30.0f * dtms;
+            }
+            else if (glfwGetKey(window.GLFWHandle(), GLFW_KEY_S)) {
+                eyePos.z -= 30.0f * dtms;
+            }
+            if (glfwGetKey(window.GLFWHandle(), GLFW_KEY_A)) {
+                eyePos.x -= 30.0f * dtms;
+            }
+            else if (glfwGetKey(window.GLFWHandle(), GLFW_KEY_D)) {
+                eyePos.x += 30.0f * dtms;
+            }
+            if (glfwGetKey(window.GLFWHandle(), GLFW_KEY_E)) {
+                eyePos.y += 30.0f * dtms;
+            }
+            else if (glfwGetKey(window.GLFWHandle(), GLFW_KEY_Q)) {
+                eyePos.y -= 30.0f * dtms;
+            }
+
+            printf("\rPosition: (%f, %f, %f)", eyePos.x, eyePos.y, eyePos.z);
+
             //Compute View-Projection matrix for this frame. 
+            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View(eyePos);  //TODO: Const Operators
             VKR::Math::Matrix4x4<> p = VKR::Math::Matrix4x4<>::ProjectionFoVDegrees(90.0, (double)WINDOW_WIDTH / (double)WINDOW_HEIGHT, 0.001, 100000.0);
-            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View({ 0, 0, -5 });  //TODO: Const Operators
 
             viewProjection = v * p;
 
@@ -417,22 +472,17 @@ int main() {
                 VKR::Math::Matrix4x4<> s = VKR::Math::Matrix4x4<>::Scaling({ 1.0, 1.0, 1.0 });
 
                 static float rot = 0.0f;
-                rot += 10 * dtms;
+                rot += dtms;
 
-                VKR::Math::Matrix4x4<> x = VKR::Math::Matrix4x4<>::XRotationFromDegrees(rot / 2.0);
-                VKR::Math::Matrix4x4<> y = VKR::Math::Matrix4x4<>::YRotationFromDegrees(rot);
+                VKR::Math::Matrix4x4<> x = VKR::Math::Matrix4x4<>::XRotationFromDegrees(rot / 2.0 + i);
+                VKR::Math::Matrix4x4<> y = VKR::Math::Matrix4x4<>::YRotationFromDegrees(rot + i);
                 VKR::Math::Matrix4x4<> z = VKR::Math::Matrix4x4<>::ZRotationFromDegrees(0);
 
-                VKR::Math::Matrix4x4<> t = VKR::Math::Matrix4x4<>::Translation({ 0, 0, 0 }); //TODO: Template Argument Static Typecasting
+                VKR::Math::Matrix4x4<> t = VKR::Math::Matrix4x4<>::Translation({ sinf(i) * OBJECT_COUNT / 10, (float)(i % 100), cosf(i) * OBJECT_COUNT / 10 }); //TODO: Template Argument Static Typecasting
 
                 VKR::Math::Matrix4x4<> r = (x * (y * z));
                 worldMatrices[i] = (s * r) * t;
             }
-        }
-        {
-            EASY_BLOCK("Log Output");
-            printf("\r                                                          "); //Clear the current line for consistent output
-            printf("\rFrame %d\tdtms: %04fms\t%d fps\truntime: %fs", frameIdx, dtms, fps, runtime);
         }
 
         {
@@ -458,7 +508,7 @@ int main() {
             {
                 EASY_BLOCK("Render Pass", profiler::colors::Red500);
                 vkCmdUpdateBuffer(cmd, uniformBuffer, 0, sizeof(VKR::Math::Matrix4x4<float>), &viewProjection);
-                VkClearValue clearValues[3] = { swapchain.GetColourClearValue(), swapchain.GetDepthStencilClearValue(), swapchain.GetColourClearValue()};
+                VkClearValue clearValues[3] = { swapchain.GetColourClearValue(), swapchain.GetDepthStencilClearValue(), swapchain.GetColourClearValue() };
                 VkRenderPassBeginInfo rpb = {
                     VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                     nullptr,
@@ -472,10 +522,12 @@ int main() {
                 vkCmdSetViewport(cmd, 0, 1, &viewport);     //Dynamic State
                 vkCmdSetScissor(cmd, 0, 1, &scissor);
                 vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-                vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
                 VkDeviceSize offsets = 0;
                 vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, &offsets);
                 vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+                vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, gridPipeline);
+                vkCmdDraw(cmd, 6, 1, 0, 0);
+                vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
                 for (uint32_t i = 0; i < OBJECT_COUNT; i++) {
                     vkCmdPushConstants(cmd, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VKR::Math::Matrix4x4<>), &worldMatrices[i]);
                     vkCmdDrawIndexed(cmd, 36, 1, 0, 0, 0);
@@ -526,6 +578,10 @@ int main() {
     VKR::IO::WriteFile("PipelineCache.bin", cacheData.data(), cacheData.size());
     vkDestroyPipelineCache(context.GetDevice(), pipelineCache, nullptr);
 
+    context.DestroyPipeline(gridPipeline);
+    context.DestroyShaderModule(gridFragmentShaderModule);
+    context.DestroyShaderModule(gridVertexShaderModule);
+
     context.DestroyPipeline(graphicsPipeline);
     context.DestroyPipelineLayout(graphicsPipelineLayout);
     context.DestroyShaderModule(fragmentShaderModule);
@@ -541,8 +597,8 @@ int main() {
         vkDestroyFramebuffer(context.GetDevice(), frameBuffers[i], nullptr);
     }
 
-    context.DestroyImageView(renderTargetView); 
-    context.DestroyImage(renderTargetImage, renderTargetImageAlloc); 
+    context.DestroyImageView(renderTargetView);
+    context.DestroyImage(renderTargetImage, renderTargetImageAlloc);
     context.DestroyImageView(depthView);
     context.DestroyImage(depthImage, depthImageAlloc);
     context.DestroyBuffer(indexBuffer, indexBufferAlloc);
