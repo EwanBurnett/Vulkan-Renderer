@@ -9,8 +9,8 @@ VKR::Status VKR::Init()
     
     glfwInit();
     EASY_MAIN_THREAD;
-    profiler::startListen();
     //EASY_PROFILER_ENABLE; //TODO: Debug Switch
+    profiler::startListen();
 
     return Status::NOT_IMPLEMENTED; 
 }
@@ -21,7 +21,7 @@ VKR::Status VKR::Shutdown()
     EASY_FUNCTION(profiler::colors::Grey600);
     
     glfwTerminate();
-    profiler::stopListen();
+    //profiler::stopListen();
     //profiler::dumpBlocksToFile("PROFILE_RESULT.prof");
 
     return Status();

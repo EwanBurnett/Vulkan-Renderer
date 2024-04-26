@@ -13,8 +13,6 @@
 #include <vector> 
 #include <Thread>
 
-#include <fstream>  //DEBUGGING
-
 #include <cstdio> 
 #include <easy/profiler.h>
 
@@ -23,8 +21,9 @@ constexpr uint32_t WINDOW_HEIGHT = 400;
 
 constexpr uint32_t FRAMES_IN_FLIGHT = 2;
 
+constexpr uint32_t OBJECT_COUNT = 1;
+
 void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, uint32_t& queueFamilyIndex, VkQueue& queue);
-void InitResources();
 void ShutdownVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain);
 
 int main() {
@@ -56,6 +55,40 @@ int main() {
     VkCommandPool commandPool;
     context.CreateCommandPool(graphicsQueueIndex, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &commandPool);
 
+    VkDescriptorPool descriptorPool;
+    const std::vector<VkDescriptorPoolSize> descriptorPoolSizes = {
+        {
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            swapchain.GetImageCount() * 1
+        }
+    };
+    context.CreateDescriptorPool(swapchain.GetImageCount(), 0, descriptorPoolSizes.size(), descriptorPoolSizes.data(), &descriptorPool);
+
+    VkDescriptorSetLayout descriptorSetLayout;
+    const std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings = {
+        {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT}
+    };
+    context.CreateDescriptorSetLayout(descriptorSetLayoutBindings.size(), descriptorSetLayoutBindings.data(), &descriptorSetLayout);
+
+    VkDescriptorSet descriptorSet;
+    context.AllocateDescriptorSets(descriptorPool, 1, &descriptorSetLayout, &descriptorSet);
+
+    VkBuffer uniformBuffer;
+    VmaAllocation uniformBufferAlloc;
+    context.CreateBuffer(sizeof(VKR::Math::Matrix4x4<float>), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, &uniformBufferAlloc, &uniformBuffer);
+
+    {
+        VkDescriptorBufferInfo bufferInfo = {
+            uniformBuffer,
+            0,
+            sizeof(VKR::Math::Matrix4x4<float>)
+        };
+
+        VkWriteDescriptorSet dsWrite = VKR::VkInit::MakeWriteDescriptorSet(descriptorSet, 0, 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, &bufferInfo, nullptr);
+
+        vkUpdateDescriptorSets(context.GetDevice(), 1, &dsWrite, 0, nullptr);
+    }
+
     std::vector<float> vertices = {
         -0.6f, 0.4f, 0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, -0.6f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -83,15 +116,33 @@ int main() {
     context.CreateImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthView);
 
     //Pipeline Creation
+    VkPipelineCache pipelineCache;
+    VkPipelineCacheCreateInfo pipelineCacheCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };//TODO: VKINIT
+    if (VKR::IO::FileExists("PipelineCache.bin")) {
+        std::vector<char> pipelineCacheBlob;
+        VKR::IO::ReadFile("PipelineCache.bin", pipelineCacheBlob);
+        pipelineCacheCreateInfo.initialDataSize = pipelineCacheBlob.size();
+        pipelineCacheCreateInfo.pInitialData = pipelineCacheBlob.data();
+    }
+
+    vkCreatePipelineCache(context.GetDevice(), &pipelineCacheCreateInfo, nullptr, &pipelineCache);
+
     VkPipeline computePipeline;
     VkPipelineLayout computePipelineLayout;
-    context.CreatePipelineLayout(0, nullptr, &computePipelineLayout);
-    VkComputePipelineCreateInfo computePipelineCreateInfo; 
+    context.CreatePipelineLayout(0, nullptr, 0, nullptr, &computePipelineLayout);
+    VkComputePipelineCreateInfo computePipelineCreateInfo;
+
+
+    const VkPushConstantRange pushConstants = {
+        VK_SHADER_STAGE_VERTEX_BIT,
+        0,
+        sizeof(VKR::Math::Matrix4x4<float>)
+    };
 
     VkPipeline graphicsPipeline;
     VkPipelineLayout graphicsPipelineLayout;
-    context.CreatePipelineLayout(0, nullptr, &graphicsPipelineLayout);
-    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo; 
+    context.CreatePipelineLayout(1, &descriptorSetLayout, 1, &pushConstants, &graphicsPipelineLayout);
+    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
 
     VkRenderPass renderPass;
     {
@@ -191,7 +242,7 @@ int main() {
     VKR::VkPipelineBuilder computeBuilder;
     computeBuilder.AddShaderStage(computeShaderModule, VK_SHADER_STAGE_COMPUTE_BIT, "main");
     computePipelineCreateInfo = computeBuilder.BuildComputePipeline(computePipelineLayout);
-    context.CreateComputePipelines(1, &computePipelineCreateInfo, VK_NULL_HANDLE, &computePipeline);
+    context.CreateComputePipelines(1, &computePipelineCreateInfo, pipelineCache, &computePipeline);
 
     VKR::VkPipelineBuilder builder;
     builder.AddShaderStage(vertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
@@ -216,7 +267,7 @@ int main() {
     builder.SetVertexInputState(1, bindings, 2, attributes);
     builder.SetInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false);
 
-    builder.SetTessellationState(0); 
+    builder.SetTessellationState(0);
 
     VkViewport viewport = {};
     viewport.x = 0;
@@ -250,10 +301,10 @@ int main() {
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR
     };
-    builder.SetDynamicState(dynamicStates.size(), dynamicStates.data()); 
+    builder.SetDynamicState(dynamicStates.size(), dynamicStates.data());
 
     graphicsPipelineCreateInfo = builder.BuildGraphicsPipeline(graphicsPipelineLayout, renderPass, 0);
-    context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &graphicsPipeline);
+    context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, pipelineCache, &graphicsPipeline);
 
     std::vector<VkCommandBuffer> commands(FRAMES_IN_FLIGHT);
 
@@ -265,6 +316,8 @@ int main() {
     uint64_t fps = 0;
     double dtms = 0.0;
 
+    VKR::Math::Matrix4x4<float> viewProjection = VKR::Math::Matrix4x4<>::Identity();
+    std::vector<VKR::Math::Matrix4x4<float>> worldMatrices(OBJECT_COUNT);
     EASY_END_BLOCK;
 
     while (window.PollEvents()) {
@@ -288,25 +341,29 @@ int main() {
                 vkAcquireNextImageKHR(context.GetDevice(), swapchain.GetSwapchain(), UINT64_MAX, s_ImageAvailable[frame_in_flight], nullptr, &imageIdx);
             }
         }
-
         {
             EASY_BLOCK("Update", profiler::colors::Amber400);
-            //Simulate computing WorldViewProjection matrices for an arbitrary number of objects. 
-            const VKR::Math::Matrix4x4<> p = VKR::Math::Matrix4x4<>::ProjectionFoVDegrees(90.0, 16.0 / 9.0, 0.001, 100000.0);
-            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View({ 10.0, 32, -34 }, { 1, 2, 3 }, { 1, 2, 0 }, { 1, 0, 0 });  //TODO: Const Operators
+            //Compute View-Projection matrix for this frame. 
+            const VKR::Math::Matrix4x4<> p = VKR::Math::Matrix4x4<>::ProjectionFoVDegrees(90.0, (double)WINDOW_WIDTH / (double)WINDOW_HEIGHT, 0.001, 100000.0);
+            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View({ 0, 0, -1 });  //TODO: Const Operators
 
-            for (int i = 0; i < 500; i++) {
-                VKR::Math::Matrix4x4<> s = VKR::Math::Matrix4x4<>::Scaling({ (float)i, 2.0, 1.0 });
+            viewProjection = v * p;
 
-                VKR::Math::Matrix4x4<> x = VKR::Math::Matrix4x4<>::XRotationFromDegrees(i * 30 + (10 * dtms));
-                VKR::Math::Matrix4x4<> y = VKR::Math::Matrix4x4<>::YRotationFromDegrees(i * 30 + (20 * dtms));
-                VKR::Math::Matrix4x4<> z = VKR::Math::Matrix4x4<>::ZRotationFromDegrees(i * 30 + (30 * dtms));
+            //Compute World matrices for an arbitrary number of objects. 
+            for (int i = 0; i < OBJECT_COUNT; i++) {
+                VKR::Math::Matrix4x4<> s = VKR::Math::Matrix4x4<>::Scaling({ 1.0, 1.0, 1.0 });
 
-                VKR::Math::Matrix4x4<> t = VKR::Math::Matrix4x4<>::Translation({ (float)frameIdx + (10.0f * (float)dtms), (float)i * 20, 30 }); //TODO: Template Argument Static Typecasting
+                static float rot = 0.0f;
+                rot += 10 * dtms;
+
+                VKR::Math::Matrix4x4<> x = VKR::Math::Matrix4x4<>::XRotationFromDegrees(0);
+                VKR::Math::Matrix4x4<> y = VKR::Math::Matrix4x4<>::YRotationFromDegrees(0);
+                VKR::Math::Matrix4x4<> z = VKR::Math::Matrix4x4<>::ZRotationFromDegrees(rot);
+
+                VKR::Math::Matrix4x4<> t = VKR::Math::Matrix4x4<>::Translation({ 0, 0, 0 }); //TODO: Template Argument Static Typecasting
 
                 VKR::Math::Matrix4x4<> r = (x * (y * z));
-                VKR::Math::Matrix4x4<> w = (s * r) * t;
-                VKR::Math::Matrix4x4<> wvp = w * (v * p);
+                worldMatrices[i] = (s * r) * t;
             }
         }
         {
@@ -318,17 +375,9 @@ int main() {
         {
             EASY_BLOCK("Device Work", profiler::colors::Red500);
 
+            context.FreeCommandBuffers(commandPool, 1, &commands[frame_in_flight]);
+            context.AllocateCommandBuffers(commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1, &commands[frame_in_flight]);
 
-            const VkCommandBufferAllocateInfo allocInfo = {
-                   VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                   nullptr,
-                   commandPool,
-                   VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                   1
-            };
-
-            vkFreeCommandBuffers(context.GetDevice(), commandPool, 1, &commands[frame_in_flight]);
-            vkAllocateCommandBuffers(context.GetDevice(), &allocInfo, &commands[frame_in_flight]);
             VkCommandBuffer& cmd = commands[frame_in_flight];
 
             const VkCommandBufferBeginInfo beginInfo = {
@@ -345,6 +394,7 @@ int main() {
             }
             {
                 EASY_BLOCK("Render Pass", profiler::colors::Red500);
+                vkCmdUpdateBuffer(cmd, uniformBuffer, 0, sizeof(VKR::Math::Matrix4x4<float>), &viewProjection);
                 VkClearValue clearValues[2] = { swapchain.GetColourClearValue(), swapchain.GetDepthStencilClearValue() };
                 VkRenderPassBeginInfo rpb = {
                     VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -357,18 +407,22 @@ int main() {
                 };
                 vkCmdBeginRenderPass(cmd, &rpb, VK_SUBPASS_CONTENTS_INLINE);
                 vkCmdSetViewport(cmd, 0, 1, &viewport);     //Dynamic State
-                vkCmdSetScissor(cmd, 0, 1, &scissor); 
+                vkCmdSetScissor(cmd, 0, 1, &scissor);
+                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
                 vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
                 VkDeviceSize offsets = 0;
                 vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer, &offsets);
-                vkCmdDraw(cmd, 3, 1, 0, 0);
-
+                for (uint32_t i = 0; i < OBJECT_COUNT; i++) {
+                    vkCmdPushConstants(cmd, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VKR::Math::Matrix4x4<>), &worldMatrices[i]);
+                    vkCmdDraw(cmd, 3, 1, 0, 0);
+                }
                 vkCmdEndRenderPass(cmd);
+
             }
             vkEndCommandBuffer(cmd);
 
             {
-                EASY_BLOCK("Compute Queue Submission", profiler::colors::Red500);
+                EASY_BLOCK("Queue Submission", profiler::colors::Red500);
 
                 VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
 
@@ -399,6 +453,15 @@ int main() {
     window.Destroy();
 
     vkDeviceWaitIdle(context.GetDevice());
+
+    uint64_t cacheDataSize = 0;
+    vkGetPipelineCacheData(context.GetDevice(), pipelineCache, &cacheDataSize, nullptr);
+    std::vector<char> cacheData(cacheDataSize);
+    vkGetPipelineCacheData(context.GetDevice(), pipelineCache, &cacheDataSize, cacheData.data());
+
+    VKR::IO::WriteFile("PipelineCache.bin", cacheData.data(), cacheData.size());
+    vkDestroyPipelineCache(context.GetDevice(), pipelineCache, nullptr);
+
     context.DestroyPipeline(graphicsPipeline);
     context.DestroyPipelineLayout(graphicsPipelineLayout);
     context.DestroyShaderModule(fragmentShaderModule);
@@ -410,13 +473,18 @@ int main() {
 
     context.DestroyRenderPass(renderPass);
 
-    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+    for (int i = 0; i < swapchain.GetImageCount(); i++) {
         vkDestroyFramebuffer(context.GetDevice(), frameBuffers[i], nullptr);
     }
 
     context.DestroyImage(depthImage, depthImageAlloc);
     context.DestroyImageView(depthView);
     context.DestroyBuffer(vertexBuffer, vertexBufferAlloc);
+    context.DestroyBuffer(uniformBuffer, uniformBufferAlloc);
+
+    context.DestroyDescriptorSetlayout(descriptorSetLayout);
+    context.DestroyDescriptorPool(descriptorPool);
+
     context.DestroyCommandPool(commandPool);
 
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
@@ -491,11 +559,6 @@ void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Windo
     swapchain.Create(context, &window, queueFamilyIndex);
 }
 
-
-//For Application Bootstrapping
-void InitResources() {
-
-}
 
 void ShutdownVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain) {
 

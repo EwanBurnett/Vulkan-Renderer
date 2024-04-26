@@ -76,6 +76,30 @@ VkImageCreateInfo VKR::VkInit::MakeImageCreateInfo(const VkExtent3D extents, con
     };
 }
 
+VkDescriptorPoolSize VKR::VkInit::MakeDescriptorPoolSize(const VkDescriptorType type, const uint32_t count)
+{
+    return {
+        type,
+        count
+    };
+}
+
+VkWriteDescriptorSet VKR::VkInit::MakeWriteDescriptorSet(const VkDescriptorSet descriptorSet, const uint32_t binding, const uint32_t arrayElement, const uint32_t count, const VkDescriptorType type, const VkDescriptorImageInfo* pImageInfo, const VkDescriptorBufferInfo* pBufferInfo, const VkBufferView* pTexelBufferView)
+{
+    return {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, 
+        nullptr, 
+        descriptorSet, 
+        binding, 
+        arrayElement, 
+        count, 
+        type, 
+        pImageInfo, 
+        pBufferInfo, 
+        pTexelBufferView
+    };
+}
+
 VkImageViewCreateInfo VKR::VkInit::MakeImageViewCreateInfo(VkImage image, VkImageViewType type, VkFormat format, VkImageAspectFlags aspectFlags)
 {
     return {

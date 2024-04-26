@@ -1,8 +1,11 @@
 #include "../include/Window.h"
 #include "../include/Logger.h"
+#include <easy/profiler.h>
 
 VKR::Status VKR::Window::Create(const char* title, const uint32_t width, const uint32_t height)
 {
+    EASY_FUNCTION(profiler::colors::Green500);
+
     Log::Message("[VKR]\tCreating Window \"%s\" (%dx%d)\n", title, width, height); 
     m_Width = width;
     m_Height = height;
@@ -23,6 +26,7 @@ VKR::Status VKR::Window::Create(const char* title, const uint32_t width, const u
 
 VKR::Status VKR::Window::Destroy()
 {
+    EASY_FUNCTION(profiler::colors::Green500);
     glfwDestroyWindow(m_Handle);
     m_Handle = nullptr;     //Invalidate the handle
     return SUCCESS; 
@@ -71,6 +75,7 @@ GLFWwindow* VKR::Window::GLFWHandle() const
 
 const bool VKR::Window::PollEvents() const
 {
+    EASY_FUNCTION(profiler::colors::Green500);
     if (!glfwWindowShouldClose(m_Handle)) {
         glfwPollEvents();
         return true;

@@ -69,7 +69,7 @@ add_library(imgui
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"
 )
 
-target_link_libraries(imgui glfw)
+target_link_libraries(imgui glfw Vulkan::Vulkan)
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
 
 set(VKRENDERER_DEFINITIONS
@@ -121,7 +121,7 @@ add_library("VkRenderer" STATIC
 
 # Link our dependencies
 target_link_libraries("VkRenderer" PUBLIC Vulkan::Vulkan Threads::Threads glfw imgui easy_profiler enkiTS PRIVATE assimp VulkanMemoryAllocator)
-target_include_directories("VkRenderer" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR})
+target_include_directories("VkRenderer" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR} ${imgui_SOURCE_DIR})
 
 target_compile_definitions("VkRenderer" PUBLIC ${VKRENDERER_DEFINITIONS})
 add_compile_definitions("$<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>")

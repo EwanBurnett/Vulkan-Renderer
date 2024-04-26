@@ -11,8 +11,8 @@
 
 namespace VKR {
     class VkContext {
-    public: 
-        VkContext(); 
+    public:
+        VkContext();
 
         //Instance Level Functions
 #ifdef DEBUG
@@ -25,71 +25,77 @@ namespace VKR {
         VkResult DebugSetObjectName(uint64_t objectHandle, VkObjectType objectType, const char* name);
 #endif
 
-        const VkInstance& GetInstance() const; 
+        const VkInstance& GetInstance() const;
         VkResult CreateInstance(const uint32_t numLayers, const char* const* ppLayers, const uint32_t numExtensions, const char* const* ppExtensions, const VkApplicationInfo* pApplicationInfo = nullptr);
-        void DestroyInstance(); 
+        void DestroyInstance();
 
 
         //Physical Device
-        const VkPhysicalDevice& GetPhysicalDevice() const; 
-        VkResult SelectPhysicalDevice(); 
+        const VkPhysicalDevice& GetPhysicalDevice() const;
+        VkResult SelectPhysicalDevice();
 
         //Logical Device
-        const VkDevice& GetDevice() const; 
+        const VkDevice& GetDevice() const;
         VkResult CreateDevice(const uint32_t numExtensions, const char* const* ppExtensions, const uint32_t numQueues, const VkDeviceQueueCreateInfo* pQueueCreateInfos, const VkPhysicalDeviceFeatures* pFeatures = nullptr);
-        void DestroyDevice(); 
+        void DestroyDevice();
 
         //VMA
-        VkResult CreateAllocator(); 
-        void DestroyAllocator(); 
+        VkResult CreateAllocator();
+        void DestroyAllocator();
 
-        VkResult Map(const VmaAllocation& allocation, void** ppData); 
-        void Unmap(const VmaAllocation& allocation); 
+        VkResult Map(const VmaAllocation& allocation, void** ppData) const;
+        void Unmap(const VmaAllocation& allocation) const;
 
         //Device Level Functions
-        VkQueue GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex);
+        VkQueue GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex) const;
 
-        VkResult CreateSemaphore(VkSemaphore* pSemaphore);
-        void DestroySemaphore(VkSemaphore& semaphore);
+        VkResult CreateSemaphore(VkSemaphore* pSemaphore) const;
+        void DestroySemaphore(VkSemaphore& semaphore) const;
 
-        VkResult CreateFence(VkFence* pFence, bool startSignaled = true);
-        void DestroyFence(VkFence& fence);
+        VkResult CreateFence(VkFence* pFence, bool startSignaled = true) const;
+        void DestroyFence(VkFence& fence) const;
 
-        VkResult CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer);
-        void DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation);
+        VkResult CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer) const;
+        void DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation) const;
 
-        VkResult CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation*  pAllocation, VkImage* pImage);
-        void DestroyImage(VkImage& image, VmaAllocation& allocation);
+        VkResult CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage) const;
+        void DestroyImage(VkImage& image, VmaAllocation& allocation) const;
 
         VkResult CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pImageView) const;
         void DestroyImageView(VkImageView& imageView) const;
 
-        VkResult CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool);
-        void DestroyCommandPool(VkCommandPool& commandPool);
+        VkResult CreateShaderModule(const char* const pBlob, const size_t byteWidth, VkShaderModule* pShaderModule) const;
+        void DestroyShaderModule(VkShaderModule& shaderModule) const;
 
-        VkResult AllocateCommandBuffers(VkCommandPool commandPool, VkCommandBufferLevel level, const uint32_t count, VkCommandBuffer* pCommandBuffers);
+        VkResult CreateSampler(VkSampler* pSampler) const;
+        void DestroySampler(VkSampler& sampler) const;
 
-        VkResult CreateShaderModule(const char* const pBlob, const size_t byteWidth, VkShaderModule* pShaderModule); 
-        void DestroyShaderModule(VkShaderModule& shaderModule);
+        VkResult CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool) const;
+        void DestroyCommandPool(VkCommandPool& commandPool) const;
 
-        VkResult CreateSampler(VkSampler* pSampler);
-        void DestroySampler(VkSampler& sampler);
+        VkResult AllocateCommandBuffers(const VkCommandPool commandPool, VkCommandBufferLevel level, const uint32_t count, VkCommandBuffer* pCommandBuffers) const;
+        void FreeCommandBuffers(const VkCommandPool commandPool, const uint32_t count, VkCommandBuffer* pCommandBuffers);
 
-        VkResult CreateDescriptorPool(const uint32_t uniformBufferCount, const uint32_t storageBufferCount, const uint32_t samplerCount, VkDescriptorPool* pDescriptorPool);
-        void DestroyDescriptorPool(VkDescriptorPool& descriptorPool);
+        VkResult CreateDescriptorPool(const uint32_t maxSets, const uint32_t flags, const uint32_t numPoolSizes, const VkDescriptorPoolSize* pPoolSizes, VkDescriptorPool* pDescriptorPool) const;
+        void DestroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
 
-        VkResult CreatePipelineLayout(const uint32_t numDescriptors, VkDescriptorSetLayout* pDescriptors, VkPipelineLayout* pPipelineLayout);
-        void DestroyPipelineLayout(VkPipelineLayout& pipelineLayout);
+        VkResult CreateDescriptorSetLayout(const uint32_t numBindings, const VkDescriptorSetLayoutBinding* pBindings, VkDescriptorSetLayout* pLayout);
+        void DestroyDescriptorSetlayout(VkDescriptorSetLayout& layout);
+        
+        VkResult AllocateDescriptorSets(const VkDescriptorPool descriptorPool, const uint32_t numSets, const VkDescriptorSetLayout* pLayouts, VkDescriptorSet* pSets);
 
-        VkResult CreateComputePipelines(const uint32_t numPipelines, const VkComputePipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines);
-        VkResult CreateGraphicsPipelines(const uint32_t numPipelines, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines);
-        void DestroyPipeline(VkPipeline& pipeline); 
+        VkResult CreatePipelineLayout(const uint32_t numDescriptors, const VkDescriptorSetLayout * pDescriptors, const uint32_t numPushConstants, const VkPushConstantRange* pPushConstants, VkPipelineLayout* pPipelineLayout) const;
+        void DestroyPipelineLayout(VkPipelineLayout& pipelineLayout) const;
 
-        VkResult CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass);
-        void DestroyRenderPass(VkRenderPass& renderPass);
+        VkResult CreateComputePipelines(const uint32_t numPipelines, const VkComputePipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines) const;
+        VkResult CreateGraphicsPipelines(const uint32_t numPipelines, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines) const;
+        void DestroyPipeline(VkPipeline& pipeline) const;
 
-        VkResult CreateFrameBuffer(const VkExtent3D extents, const VkRenderPass renderPass, const uint32_t numAttachments, const VkImageView* pAttachments, VkFramebuffer* pFrameBuffer);
-        void DestroyFrameBuffer(VkFramebuffer& frameBuffer);
+        VkResult CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass) const;
+        void DestroyRenderPass(VkRenderPass& renderPass) const;
+
+        VkResult CreateFrameBuffer(const VkExtent3D extents, const VkRenderPass renderPass, const uint32_t numAttachments, const VkImageView* pAttachments, VkFramebuffer* pFrameBuffer) const;
+        void DestroyFrameBuffer(VkFramebuffer& frameBuffer) const;
 
     private:
 #ifdef DEBUG
@@ -105,14 +111,14 @@ namespace VKR {
 
 
     private:
-        VkInstance m_Instance; 
-        VkPhysicalDevice m_PhysicalDevice; 
-        VkDevice m_Device; 
+        VkInstance m_Instance;
+        VkPhysicalDevice m_PhysicalDevice;
+        VkDevice m_Device;
 #ifdef DEBUG
-        VkDebugUtilsMessengerEXT m_DebugLogger; 
-        VkDebugReportCallbackEXT m_DebugReporter; 
+        VkDebugUtilsMessengerEXT m_DebugLogger;
+        VkDebugReportCallbackEXT m_DebugReporter;
 #endif
-        VmaAllocator m_Allocator; 
+        VmaAllocator m_Allocator;
     };
 }
 

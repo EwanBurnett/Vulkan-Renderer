@@ -228,6 +228,7 @@ const VkPhysicalDevice& VKR::VkContext::GetPhysicalDevice() const
 
 VkResult VKR::VkContext::SelectPhysicalDevice()
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     uint32_t count = 0;
     vkEnumeratePhysicalDevices(m_Instance, &count, nullptr);
     VkPhysicalDevice* pDevices = new VkPhysicalDevice[count];
@@ -254,6 +255,7 @@ const VkDevice& VKR::VkContext::GetDevice() const
 
 VkResult VKR::VkContext::CreateDevice(const uint32_t numExtensions, const char* const* ppExtensions, const uint32_t numQueues, const VkDeviceQueueCreateInfo* pQueueCreateInfos, const VkPhysicalDeviceFeatures* pFeatures)
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     if (m_PhysicalDevice == VK_NULL_HANDLE) {
         Log::Fatal(__FILE__, __LINE__, __PRETTY_FUNCTION__, true, "[Vulkan]\tPhysical Device was VK_NULL_HANDLE!\n");
         return VK_ERROR_UNKNOWN;
@@ -283,10 +285,13 @@ VkResult VKR::VkContext::CreateDevice(const uint32_t numExtensions, const char* 
 
 void VKR::VkContext::DestroyDevice()
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyDevice(m_Device, nullptr);
 }
 
-VkResult VKR::VkContext::CreateAllocator() {
+VkResult VKR::VkContext::CreateAllocator()
+{
+    EASY_FUNCTION(profiler::colors::Red500);
     VmaAllocatorCreateInfo createInfo = {
         0, //FLAGS
         m_PhysicalDevice,
@@ -305,28 +310,32 @@ VkResult VKR::VkContext::CreateAllocator() {
 }
 
 void VKR::VkContext::DestroyAllocator() {
+    EASY_FUNCTION(profiler::colors::Red500);
     vmaDestroyAllocator(m_Allocator);
 }
 
-VkResult VKR::VkContext::Map(const VmaAllocation& allocation, void** ppData)
+VkResult VKR::VkContext::Map(const VmaAllocation& allocation, void** ppData) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     return vmaMapMemory(m_Allocator, allocation, ppData);
 }
 
-void VKR::VkContext::Unmap(const VmaAllocation& allocation)
+void VKR::VkContext::Unmap(const VmaAllocation& allocation) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vmaUnmapMemory(m_Allocator, allocation);
 }
 
-VkQueue VKR::VkContext::GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex)
+VkQueue VKR::VkContext::GetDeviceQueue(const uint32_t queueFamilyIndex, const uint32_t queueIndex) const
 {
     VkQueue queue = VK_NULL_HANDLE;
     vkGetDeviceQueue(m_Device, queueFamilyIndex, queueIndex, &queue);
     return queue;
 }
 
-VkResult VKR::VkContext::CreateSemaphore(VkSemaphore* pSemaphore)
+VkResult VKR::VkContext::CreateSemaphore(VkSemaphore* pSemaphore) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkSemaphoreCreateInfo createInfo = {
        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
        nullptr,
@@ -336,13 +345,15 @@ VkResult VKR::VkContext::CreateSemaphore(VkSemaphore* pSemaphore)
     return vkCreateSemaphore(m_Device, &createInfo, nullptr, pSemaphore);
 }
 
-void VKR::VkContext::DestroySemaphore(VkSemaphore& semaphore)
+void VKR::VkContext::DestroySemaphore(VkSemaphore& semaphore) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroySemaphore(m_Device, semaphore, nullptr);
 }
 
-VkResult VKR::VkContext::CreateFence(VkFence* pFence, bool startSignaled)
+VkResult VKR::VkContext::CreateFence(VkFence* pFence, bool startSignaled) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkFenceCreateInfo createInfo = {
        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
        nullptr,
@@ -352,13 +363,15 @@ VkResult VKR::VkContext::CreateFence(VkFence* pFence, bool startSignaled)
     return vkCreateFence(m_Device, &createInfo, nullptr, pFence);
 }
 
-void VKR::VkContext::DestroyFence(VkFence& fence)
+void VKR::VkContext::DestroyFence(VkFence& fence) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyFence(m_Device, fence, nullptr);
 }
 
-VkResult VKR::VkContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer)
+VkResult VKR::VkContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkBuffer* pBuffer) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkBufferCreateInfo createInfo = VkInit::MakeBufferCreateInfo(size, usage);
 
     VmaAllocationCreateInfo allocInfo = {};
@@ -368,12 +381,15 @@ VkResult VKR::VkContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usag
     return vmaCreateBuffer(m_Allocator, &createInfo, &allocInfo, pBuffer, pAllocation, nullptr);
 }
 
-void VKR::VkContext::DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation) {
+void VKR::VkContext::DestroyBuffer(VkBuffer& buffer, VmaAllocation& allocation) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
     vmaDestroyBuffer(m_Allocator, buffer, allocation);
 }
 
-VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage)
+VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D extents, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, const VmaMemoryUsage memoryUsage, const uint32_t memoryFlags, VmaAllocation* pAllocation, VkImage* pImage) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkImageCreateInfo createInfo = VkInit::MakeImageCreateInfo(extents, type, format, tiling, usage);
 
     VmaAllocationCreateInfo allocInfo = {};
@@ -383,13 +399,15 @@ VkResult VKR::VkContext::CreateImage(const VkImageType type, const VkExtent3D ex
     return vmaCreateImage(m_Allocator, &createInfo, &allocInfo, pImage, pAllocation, nullptr);
 }
 
-void VKR::VkContext::DestroyImage(VkImage& image, VmaAllocation& allocation)
+void VKR::VkContext::DestroyImage(VkImage& image, VmaAllocation& allocation) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vmaDestroyImage(m_Allocator, image, allocation);
 }
 
 VkResult VKR::VkContext::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pImageView) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkImageViewCreateInfo createInfo = VkInit::MakeImageViewCreateInfo(image, VK_IMAGE_VIEW_TYPE_2D, format, aspectFlags);
 
     return vkCreateImageView(m_Device, &createInfo, nullptr, pImageView);
@@ -397,29 +415,13 @@ VkResult VKR::VkContext::CreateImageView(VkImage image, VkFormat format, VkImage
 
 void VKR::VkContext::DestroyImageView(VkImageView& imageView) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyImageView(m_Device, imageView, nullptr);
 }
 
-VkResult VKR::VkContext::CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool)
+VkResult VKR::VkContext::CreateShaderModule(const char* const pBlob, const size_t byteWidth, VkShaderModule* pShaderModule) const
 {
-    const VkCommandPoolCreateInfo createInfo = {
-      VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      nullptr,
-      flags,
-      queueFamilyIndex
-    };
-
-    return vkCreateCommandPool(m_Device, &createInfo, nullptr, pCommandPool);
-}
-
-void VKR::VkContext::DestroyCommandPool(VkCommandPool& commandPool)
-{
-    vkDestroyCommandPool(m_Device, commandPool, nullptr);
-}
-
-
-VkResult VKR::VkContext::CreateShaderModule(const char* const pBlob, const size_t byteWidth, VkShaderModule* pShaderModule)
-{
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkShaderModuleCreateInfo createInfo = {
     VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         nullptr,
@@ -432,45 +434,149 @@ VkResult VKR::VkContext::CreateShaderModule(const char* const pBlob, const size_
 }
 
 
-void VKR::VkContext::DestroyShaderModule(VkShaderModule& shaderModule) {
+void VKR::VkContext::DestroyShaderModule(VkShaderModule& shaderModule) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyShaderModule(m_Device, shaderModule, nullptr);
 }
 
-VkResult VKR::VkContext::CreatePipelineLayout(const uint32_t numDescriptors, VkDescriptorSetLayout* pDescriptors, VkPipelineLayout* pPipelineLayout)
+VkResult VKR::VkContext::CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
+    const VkCommandPoolCreateInfo createInfo = {
+      VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      nullptr,
+      flags,
+      queueFamilyIndex
+    };
+
+    return vkCreateCommandPool(m_Device, &createInfo, nullptr, pCommandPool);
+}
+
+void VKR::VkContext::DestroyCommandPool(VkCommandPool& commandPool) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkDestroyCommandPool(m_Device, commandPool, nullptr);
+}
+
+VkResult VKR::VkContext::AllocateCommandBuffers(const VkCommandPool commandPool, VkCommandBufferLevel level, const uint32_t count, VkCommandBuffer* pCommandBuffers) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    const VkCommandBufferAllocateInfo allocInfo = {
+          VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+          nullptr,
+          commandPool,
+          level,
+          count
+    };
+
+    return vkAllocateCommandBuffers(m_Device, &allocInfo, pCommandBuffers);
+}
+
+void VKR::VkContext::FreeCommandBuffers(const VkCommandPool commandPool, const uint32_t count, VkCommandBuffer* pCommandBuffers)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkFreeCommandBuffers(m_Device, commandPool, count, pCommandBuffers);
+}
+
+VkResult VKR::VkContext::CreateDescriptorPool(const uint32_t maxSets, const uint32_t flags, const uint32_t numPoolSizes, const VkDescriptorPoolSize* pPoolSizes, VkDescriptorPool* pDescriptorPool) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    const VkDescriptorPoolCreateInfo createInfo = {
+       VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+       nullptr,
+       0,
+       maxSets,
+       numPoolSizes,
+       pPoolSizes
+    };
+
+    return vkCreateDescriptorPool(m_Device, &createInfo, nullptr, pDescriptorPool);
+}
+
+void VKR::VkContext::DestroyDescriptorPool(VkDescriptorPool& descriptorPool) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkDestroyDescriptorPool(m_Device, descriptorPool, nullptr);
+}
+
+VkResult VKR::VkContext::CreateDescriptorSetLayout(const uint32_t numBindings, const VkDescriptorSetLayoutBinding* pBindings, VkDescriptorSetLayout* pLayout)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    const VkDescriptorSetLayoutCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        nullptr,
+        0,
+        numBindings,
+        pBindings
+    };
+
+    return vkCreateDescriptorSetLayout(m_Device, &createInfo, nullptr, pLayout);
+}
+
+void VKR::VkContext::DestroyDescriptorSetlayout(VkDescriptorSetLayout& layout)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkDestroyDescriptorSetLayout(m_Device, layout, nullptr);
+}
+
+VkResult VKR::VkContext::AllocateDescriptorSets(const VkDescriptorPool descriptorPool, const uint32_t numSets, const VkDescriptorSetLayout* pLayouts, VkDescriptorSet* pSets)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    const VkDescriptorSetAllocateInfo allocInfo = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        nullptr,
+        descriptorPool,
+        numSets,
+        pLayouts
+    };
+
+    return vkAllocateDescriptorSets(m_Device, &allocInfo, pSets);
+}
+
+VkResult VKR::VkContext::CreatePipelineLayout(const uint32_t numDescriptors, const VkDescriptorSetLayout * pDescriptors, const uint32_t numPushConstants, const VkPushConstantRange* pPushConstants, VkPipelineLayout* pPipelineLayout) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkPipelineLayoutCreateInfo createInfo = {
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         nullptr,
         0,
         numDescriptors,
         pDescriptors,
-        0,
-        nullptr
+        numPushConstants,
+        pPushConstants
     };
 
     return vkCreatePipelineLayout(m_Device, &createInfo, nullptr, pPipelineLayout);
 }
 
-void VKR::VkContext::DestroyPipelineLayout(VkPipelineLayout& pipelineLayout) {
+void VKR::VkContext::DestroyPipelineLayout(VkPipelineLayout& pipelineLayout) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyPipelineLayout(m_Device, pipelineLayout, nullptr);
 }
 
-VkResult VKR::VkContext::CreateComputePipelines(const uint32_t numPipelines, const VkComputePipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines)
+VkResult VKR::VkContext::CreateComputePipelines(const uint32_t numPipelines, const VkComputePipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     return vkCreateComputePipelines(m_Device, pipelineCache, numPipelines, pCreateInfos, nullptr, pPipelines);
 }
 
-VkResult VKR::VkContext::CreateGraphicsPipelines(const uint32_t numPipelines, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines)
+VkResult VKR::VkContext::CreateGraphicsPipelines(const uint32_t numPipelines, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkPipelineCache pipelineCache, VkPipeline* pPipelines) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     return vkCreateGraphicsPipelines(m_Device, pipelineCache, numPipelines, pCreateInfos, nullptr, pPipelines);
 }
 
-void VKR::VkContext::DestroyPipeline(VkPipeline& pipeline) {
+void VKR::VkContext::DestroyPipeline(VkPipeline& pipeline)  const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyPipeline(m_Device, pipeline, nullptr);
 }
 
-VkResult VKR::VkContext::CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass)
+VkResult VKR::VkContext::CreateRenderPass(const uint32_t numAttachments, const VkAttachmentDescription* pAttachments, const uint32_t numSubpasses, const VkSubpassDescription* pSubpasses, const uint32_t numDependencies, const VkSubpassDependency* pDependencies, VkRenderPass* pRenderPass) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkRenderPassCreateInfo createInfo = {
         VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         nullptr,
@@ -485,22 +591,24 @@ VkResult VKR::VkContext::CreateRenderPass(const uint32_t numAttachments, const V
     return vkCreateRenderPass(m_Device, &createInfo, nullptr, pRenderPass);
 }
 
-void VKR::VkContext::DestroyRenderPass(VkRenderPass& renderPass)
+void VKR::VkContext::DestroyRenderPass(VkRenderPass& renderPass) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyRenderPass(m_Device, renderPass, nullptr);
 }
 
 
-VkResult VKR::VkContext::CreateFrameBuffer(const VkExtent3D extents, const VkRenderPass renderPass, const uint32_t numAttachments, const VkImageView* pAttachments, VkFramebuffer* pFrameBuffer)
+VkResult VKR::VkContext::CreateFrameBuffer(const VkExtent3D extents, const VkRenderPass renderPass, const uint32_t numAttachments, const VkImageView* pAttachments, VkFramebuffer* pFrameBuffer) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     const VkFramebufferCreateInfo createInfo = {
         VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        nullptr, 
-        0, 
-        renderPass, 
+        nullptr,
+        0,
+        renderPass,
         numAttachments,
         pAttachments,
-        extents.width, 
+        extents.width,
         extents.height,
         extents.depth
     };
@@ -508,7 +616,8 @@ VkResult VKR::VkContext::CreateFrameBuffer(const VkExtent3D extents, const VkRen
     return vkCreateFramebuffer(m_Device, &createInfo, nullptr, pFrameBuffer);
 }
 
-void VKR::VkContext::DestroyFrameBuffer(VkFramebuffer& frameBuffer)
+void VKR::VkContext::DestroyFrameBuffer(VkFramebuffer& frameBuffer) const
 {
+    EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyFramebuffer(m_Device, frameBuffer, nullptr);
 }
