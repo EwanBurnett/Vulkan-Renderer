@@ -440,6 +440,43 @@ void VKR::VkContext::DestroyShaderModule(VkShaderModule& shaderModule) const
     vkDestroyShaderModule(m_Device, shaderModule, nullptr);
 }
 
+
+VkResult VKR::VkContext::CreateSampler(VkSampler* pSampler) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+
+    //TODO: Verbose Sampler Configuration
+    VkSamplerCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        nullptr,
+        0,
+        VK_FILTER_LINEAR,
+        VK_FILTER_LINEAR,
+        VK_SAMPLER_MIPMAP_MODE_LINEAR,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        0.0f,
+        VK_FALSE,
+        1,
+        VK_FALSE,
+        VK_COMPARE_OP_ALWAYS,
+        0.0f,
+        0.0f,
+        VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+        VK_FALSE
+    };
+
+    return vkCreateSampler(m_Device, &createInfo, nullptr, pSampler);
+}
+
+void VKR::VkContext::DestroySampler(VkSampler& sampler) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkDestroySampler(m_Device, sampler, nullptr); 
+}
+
+
 VkResult VKR::VkContext::CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool) const
 {
     EASY_FUNCTION(profiler::colors::Red500);
@@ -485,7 +522,7 @@ VkResult VKR::VkContext::CreateDescriptorPool(const uint32_t maxSets, const uint
     const VkDescriptorPoolCreateInfo createInfo = {
        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
        nullptr,
-       0,
+       flags,
        maxSets,
        numPoolSizes,
        pPoolSizes
@@ -534,7 +571,7 @@ VkResult VKR::VkContext::AllocateDescriptorSets(const VkDescriptorPool descripto
     return vkAllocateDescriptorSets(m_Device, &allocInfo, pSets);
 }
 
-VkResult VKR::VkContext::CreatePipelineLayout(const uint32_t numDescriptors, const VkDescriptorSetLayout * pDescriptors, const uint32_t numPushConstants, const VkPushConstantRange* pPushConstants, VkPipelineLayout* pPipelineLayout) const
+VkResult VKR::VkContext::CreatePipelineLayout(const uint32_t numDescriptors, const VkDescriptorSetLayout* pDescriptors, const uint32_t numPushConstants, const VkPushConstantRange* pPushConstants, VkPipelineLayout* pPipelineLayout) const
 {
     EASY_FUNCTION(profiler::colors::Red500);
     const VkPipelineLayoutCreateInfo createInfo = {

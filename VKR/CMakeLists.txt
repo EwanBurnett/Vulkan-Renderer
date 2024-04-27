@@ -70,6 +70,7 @@ add_library(imgui
 	"${imgui_SOURCE_DIR}/imgui_tables.cpp" 
 	"${imgui_SOURCE_DIR}/imgui_widgets.cpp" 
 	"${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"
+	"${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp"
 )
 
 target_link_libraries(imgui glfw Vulkan::Vulkan)
@@ -120,7 +121,7 @@ add_library("VKR" STATIC
    "src/Vulkan/VkSwapchain.cpp"
    "include/VKR/Vulkan/VkPipelineBuilder.h"
    "src/Vulkan/VkPipelineBuilder.cpp"
-)
+ "include/VKR/Vulkan/VkImGui.h" "src/Vulkan/VkImGui.cpp")
 
 # Link our dependencies
 target_link_libraries("VKR" PUBLIC Vulkan::Vulkan Threads::Threads glfw imgui easy_profiler enkiTS assimp VulkanMemoryAllocator)

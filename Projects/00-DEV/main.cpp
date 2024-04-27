@@ -7,6 +7,7 @@
 #include <VKR/Vulkan/VkHelpers.h>
 #include <VKR/Vulkan/VkSwapchain.h>
 #include <VKR/Vulkan/VkInit.h>
+#include <VKR/Vulkan/VkImGui.h>
 #include <VKR/Vulkan/VkPipelineBuilder.h>
 
 #include <vector> 
@@ -15,8 +16,8 @@
 #include <cstdio> 
 #include <easy/profiler.h>
 
-constexpr uint32_t WINDOW_WIDTH = 600;
-constexpr uint32_t WINDOW_HEIGHT = 400;
+constexpr uint32_t WINDOW_WIDTH = 1280;
+constexpr uint32_t WINDOW_HEIGHT = 720;
 
 constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 
@@ -42,6 +43,7 @@ int main() {
     window.Show();
 
     InitVulkan(context, swapchain, window, graphicsQueueIndex, graphicsQueue);
+
 
     VkSemaphore s_ImageAvailable[FRAMES_IN_FLIGHT];
     VkSemaphore s_FrameFinished[FRAMES_IN_FLIGHT];
@@ -401,6 +403,12 @@ int main() {
     context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, pipelineCache, &graphicsPipeline);
     graphicsPipelineCreateInfo = gridBuilder.BuildGraphicsPipeline(graphicsPipelineLayout, renderPass, 0);
     context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, pipelineCache, &gridPipeline);
+
+
+    VKR::VkImGui imGuiRenderer;
+    imGuiRenderer.Init(context, window);
+    imGuiRenderer.Hook(context, graphicsQueueIndex, graphicsQueue, pipelineCache, swapchain.GetImageCount(), renderPass, MSAA_SAMPLES);
+
     std::vector<VkCommandBuffer> commands(FRAMES_IN_FLIGHT);
 
     VKR::Timer timer;
@@ -424,6 +432,8 @@ int main() {
             fps = 1.0 / dtms;
             runtime = timer.Duration();
         }
+        imGuiRenderer.BeginFrame();
+
         const uint64_t frame_in_flight = frameIdx % FRAMES_IN_FLIGHT;
 
         uint32_t imageIdx;
@@ -531,6 +541,17 @@ int main() {
                     vkCmdPushConstants(cmd, graphicsPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VKR::Math::Matrix4x4<>), &worldMatrices[i]);
                     vkCmdDrawIndexed(cmd, 36, 1, 0, 0, 0);
                 }
+                
+                ImGui::Begin("Debug");
+                ImGui::Text("Debug Message!");
+                ImGui::End();
+
+                bool demo = true; 
+                ImGui::ShowDemoWindow(&demo);
+
+                imGuiRenderer.EndFrame();
+                imGuiRenderer.Draw(&cmd);
+
                 vkCmdEndRenderPass(cmd);
 
             }
@@ -552,6 +573,7 @@ int main() {
                     1,
                     &s_FrameFinished[frame_in_flight]
                 };
+
 
                 vkQueueSubmit(graphicsQueue, 1, &submitInfo, f_FrameReady[frame_in_flight]);
             }
@@ -576,6 +598,8 @@ int main() {
 
     VKR::IO::WriteFile("PipelineCache.bin", cacheData.data(), cacheData.size());
     vkDestroyPipelineCache(context.GetDevice(), pipelineCache, nullptr);
+
+    imGuiRenderer.Shutdown(context);
 
     context.DestroyPipeline(gridPipeline);
     context.DestroyShaderModule(gridFragmentShaderModule);
