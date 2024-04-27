@@ -14,5 +14,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
-          folder: Docs/build/html
-          config_file: Docs/Doxyfile
+          folder: Docs/html
+          config_file: Doxyfile

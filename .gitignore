@@ -6,7 +6,7 @@
 [Bb][Ii][Nn]/
 [Oo][Uu][Tt]/
 
-Docs/build/
+Docs/html/
 
 # Ignore IDE generated files
 .vs/
