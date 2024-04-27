@@ -1,14 +1,13 @@
-#include <VKR.h>
-#include <Window.h>
-#include <Timer.h>
-#include <Maths.h>
-#include <File.h>
-
-#include <Vulkan/VkContext.h>
-#include <Vulkan/VkHelpers.h>
-#include <Vulkan/VkSwapchain.h>
-#include <Vulkan/VkInit.h>
-#include <Vulkan/VkPipelineBuilder.h>
+#include <VKR/VKR.h>
+#include <VKR/Window.h>
+#include <VKR/Timer.h>
+#include <VKR/Maths.h>
+#include <VKR/File.h>
+#include <VKR/Vulkan/VkContext.h>
+#include <VKR/Vulkan/VkHelpers.h>
+#include <VKR/Vulkan/VkSwapchain.h>
+#include <VKR/Vulkan/VkInit.h>
+#include <VKR/Vulkan/VkPipelineBuilder.h>
 
 #include <vector> 
 #include <Thread>
@@ -630,13 +629,13 @@ int main() {
 void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Window& window, uint32_t& queueFamilyIndex, VkQueue& queue) {
 
     std::vector<const char*> instanceLayers = {
-#if DEBUG
+#if VKR_DEBUG
        "VK_LAYER_KHRONOS_validation",
 #endif
     };
 
     std::vector<const char*> instanceExtensions = {
-#if DEBUG
+#if VKR_DEBUG
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
 #endif
@@ -654,14 +653,14 @@ void InitVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain, VKR::Windo
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
         VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
-#if DEBUG
+#if VKR_DEBUG
         VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME
 #endif
     };
 
 
     VK_CHECK(context.CreateInstance(instanceLayers.size(), instanceLayers.data(), instanceExtensions.size(), instanceExtensions.data(), nullptr));
-#if DEBUG
+#if VKR_DEBUG
     VK_CHECK(context.CreateDebugLogger());
     VK_CHECK(context.CreateDebugReporter());
 #endif
@@ -690,7 +689,7 @@ void ShutdownVulkan(VKR::VkContext& context, VKR::VkSwapchain& swapchain) {
     context.DestroyAllocator();
     context.DestroyDevice();
 
-#ifdef DEBUG
+#if VKR_DEBUG
     context.DestroyDebugReporter();
     context.DestroyDebugLogger();
 #endif

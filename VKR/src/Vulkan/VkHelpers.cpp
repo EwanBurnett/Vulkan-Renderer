@@ -1,6 +1,6 @@
-#include "../../include/Vulkan/VkHelpers.h"
+#include "../../include/VKR/Vulkan/VkHelpers.h"
 #include <vector>   //TODO: Remove all calls to new / delete, replace with std::vector. 
-#include "../../include/Logger.h"
+#include "../../include/VKR/Logger.h"
 
 
 uint32_t VKR::VkHelpers::FindQueueFamilyIndex(VkPhysicalDevice device, VkQueueFlags flags)
@@ -192,19 +192,15 @@ bool VKR::VkHelpers::ValidateInstanceLayerSupport(const char* const layer, const
     for (uint32_t i = 0; i < numInstanceSupportedLayers; i++)
     {
         if (strcmp(instanceSupportedLayers[i].layerName, layer) == 0) {
-#if DEBUG
             Log::Debug("[Vulkan]\tLayer %s is supported by the current Instance!\n", layer);
-#endif
             supported = true;
             goto LayerFound;
         }
 
     }
 
-#if DEBUG
     //Report if we didn't find the layer. 
     Log::Debug("[Vulkan]\tLayer %s was not supported by the current Instance.\n", layer);
-#endif
 
 
 LayerFound:
@@ -222,9 +218,7 @@ bool VKR::VkHelpers::ValidateInstanceLayerSupportArray(const uint32_t numLayers,
     bool result = true;
 
     if (pLayers == nullptr || numLayers == 0) {
-#if DEBUG
         Log::Debug("[Vulkan]\tValidateArrayInstanceLayerSupport() was called, but pLayers was [0x%08x], and numLayers was %d!\nDefaulting to True\n", pLayers, numLayers);
-#endif
         return true;
     }
 
@@ -273,9 +267,7 @@ bool VKR::VkHelpers::ValidatePhysicalDeviceExtensionSupport(const VkPhysicalDevi
     for (uint32_t i = 0; i < numDeviceSupportedExtensions; i++)
     {
         if (strcmp(instanceSupportedExtensions[i].extensionName, extension) == 0) {
-#if DEBUG
             Log::Debug("[Vulkan]\tExtension %s is supported by the current Physical Device!\n", extension);
-#endif
             isSupported = true;
             goto ExtensionFound;
         }
@@ -303,9 +295,7 @@ bool VKR::VkHelpers::ValidatePhysicalDeviceExtensionSupportArray(const VkPhysica
     bool result = true;
 
     if (pExtensions == nullptr || numExtensions == 0) {
-#if DEBUG
         Log::Debug("[Vulkan]\tValidatePhysicalDeviceExtensionSupportArray() was called, but pExtensions was [0x%08x], and numExtensions was %d!\nDefaulting to False\n", pExtensions, numExtensions);
-#endif
         return false;
     }
 

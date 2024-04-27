@@ -16,9 +16,6 @@ layout(binding = 0) uniform UniformBuffer{
     mat4 vp;
 } ubo; 
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColour;
-
 float gridSize = 100000.0; 
 float gridCellSize = 0.025; 
 vec4 gridColourThin = vec4(0.5, 0.5, 0.5, 1.0);

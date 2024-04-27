@@ -10,7 +10,7 @@
 
 namespace VKR {
     namespace VkInit {
-#ifdef DEBUG
+#ifdef VKR_DEBUG
         VkDebugUtilsMessengerCreateInfoEXT MakeDebugUtilsMessengerCreateInfoEXT();
         VkDebugReportCallbackCreateInfoEXT MakeDebugReportCallbackCreateInfoEXT();
 #endif

@@ -1,5 +1,5 @@
-#include "../include/Window.h"
-#include "../include/Logger.h"
+#include "../include/VKR/Window.h"
+#include "../include/VKR/Logger.h"
 #include <easy/profiler.h>
 
 VKR::Status VKR::Window::Create(const char* title, const uint32_t width, const uint32_t height)

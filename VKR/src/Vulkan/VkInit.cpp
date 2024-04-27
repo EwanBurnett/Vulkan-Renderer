@@ -1,6 +1,6 @@
-#include "../../include/Vulkan/VkInit.h"
+#include "../../include/VKR/Vulkan/VkInit.h"
 
-#ifdef DEBUG
+#ifdef VKR_DEBUG
 VkDebugUtilsMessengerCreateInfoEXT VKR::VkInit::MakeDebugUtilsMessengerCreateInfoEXT()
 {
     return {

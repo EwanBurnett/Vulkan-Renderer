@@ -1,4 +1,4 @@
-#include "../include/Timer.h"
+#include "../include/VKR/Timer.h"
 
 VKR::Timer::Timer() {
     m_bIsRunning = false;

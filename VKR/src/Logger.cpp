@@ -4,8 +4,8 @@
 #include <Windows.h>
 #endif
 
-#include "../include/Logger.h"
-#include "../include/Types.h"
+#include "../include/VKR/Logger.h"
+#include "../include/VKR/Types.h"
 
 
 void VKR::Log::Print(const char* fmt, ...) {
@@ -17,7 +17,7 @@ void VKR::Log::Print(const char* fmt, ...) {
 
 void VKR::Log::Debug(const char* fmt, ...)
 {
-#if DEBUG
+#if VKR_DEBUG
     va_list args;
     va_start(args, fmt);
     _Output(ELogColour::LIGHTGREEN, stdout, "Debug:   ");

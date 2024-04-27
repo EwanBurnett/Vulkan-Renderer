@@ -1,7 +1,7 @@
-#include "../../include/Vulkan/VkPipelineBuilder.h"
-#include "../../include/Vulkan/VkContext.h"
-#include "../../include/Vulkan/VkInit.h"
-#include "../../include/Logger.h"
+#include "../../include/VKR/Vulkan/VkPipelineBuilder.h"
+#include "../../include/VKR/Vulkan/VkContext.h"
+#include "../../include/VKR/Vulkan/VkInit.h"
+#include "../../include/VKR/Logger.h"
 #include <easy/profiler.h>
 
 VKR::VkPipelineBuilder::VkPipelineBuilder() {

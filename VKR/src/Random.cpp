@@ -1,4 +1,4 @@
-#include "../include/Random.h"
+#include "../include/VKR/Random.h"
 
 VKR::RNG::RNG(const uint64_t seed) {
     if (seed == 0) {

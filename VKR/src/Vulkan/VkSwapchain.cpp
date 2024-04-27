@@ -1,9 +1,9 @@
-#include "../../include/Vulkan/VkSwapchain.h"
-#include "../../include/Vulkan/VkContext.h"
-#include "../../include/Vulkan/VkInit.h"
-#include "../../include/Vulkan/VkHelpers.h"
-#include "../include/Window.h"
-#include "../include/Logger.h"
+#include "../../include/VKR/Vulkan/VkSwapchain.h"
+#include "../../include/VKR/Vulkan/VkContext.h"
+#include "../../include/VKR/Vulkan/VkInit.h"
+#include "../../include/VKR/Vulkan/VkHelpers.h"
+#include "../include/VKR/Window.h"
+#include "../include/VKR/Logger.h"
 #include <assert.h>
 #include <easy/profiler.h>
 

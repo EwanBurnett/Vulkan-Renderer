@@ -1,14 +1,14 @@
 #define VMA_IMPLEMENTATION
-#include "../../include/Vulkan/VkContext.h"
-#include "../../include/Vulkan/VkInit.h"
-#include "../../include/Vulkan/VkHelpers.h"
-#include "../include/Logger.h"
+#include "../../include/VKR/Vulkan/VkContext.h"
+#include "../../include/VKR/Vulkan/VkInit.h"
+#include "../../include/VKR/Vulkan/VkHelpers.h"
+#include "../include/VKR/Logger.h"
 #include <assert.h>
 #include <easy/profiler.h>
 
 VKR::VkContext::VkContext()
 {
-#ifdef DEBUG
+#ifdef VKR_DEBUG
     m_DebugLogger = VK_NULL_HANDLE;
     m_DebugReporter = VK_NULL_HANDLE;
 #endif
@@ -16,7 +16,7 @@ VKR::VkContext::VkContext()
 }
 
 
-#ifdef DEBUG
+#ifdef VKR_DEBUG
 VKAPI_ATTR VkBool32 VKAPI_CALL VKR::VkContext::DebugLog(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 {
     //Log warnings and errors to stdout. 

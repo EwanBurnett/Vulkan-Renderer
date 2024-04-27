@@ -15,7 +15,7 @@ namespace VKR {
         VkContext();
 
         //Instance Level Functions
-#ifdef DEBUG
+#ifdef VKR_DEBUG
         VkResult CreateDebugLogger();
         void DestroyDebugLogger();
 
@@ -98,7 +98,7 @@ namespace VKR {
         void DestroyFrameBuffer(VkFramebuffer& frameBuffer) const;
 
     private:
-#ifdef DEBUG
+#ifdef VKR_DEBUG
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugLog(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReport(VkDebugReportFlagBitsEXT reportFlags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, uint32_t code, const char* pLayerPrefix, const char* pMessage, void* pUserData);
 
@@ -114,7 +114,7 @@ namespace VKR {
         VkInstance m_Instance;
         VkPhysicalDevice m_PhysicalDevice;
         VkDevice m_Device;
-#ifdef DEBUG
+#ifdef VKR_DEBUG
         VkDebugUtilsMessengerEXT m_DebugLogger;
         VkDebugReportCallbackEXT m_DebugReporter;
 #endif

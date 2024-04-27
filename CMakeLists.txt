@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.14)
 
 project("Vulkan-Renderer")
 
-# First, build the Renderer Library
-add_subdirectory("${CMAKE_SOURCE_DIR}/Renderer")
+# First, build the VKR Library
+add_subdirectory("${CMAKE_SOURCE_DIR}/VKR")
 
 # Then, build the dependent projects
 add_subdirectory("${CMAKE_SOURCE_DIR}/Projects")

@@ -13,29 +13,6 @@
 namespace VKR {
     namespace IO {
 
-        /*
-#ifdef _WIN32
-        //Windows specific aliasing
-        typedef struct __FILETIME {
-            uint64_t dwLowDateTime;
-            uint64_t dwHighDateTime;
-        } FILETIME, * PFILETIME, * LPFILETIME;
-
-        using FileTime == __FILETIME;
-#endif
-
-        using FileHandle = FILE*;
-
-        constexpr uint32_t MAX_FILEPATH_LENGTH = 512;
-
-        struct Directory {
-            char path[MAX_FILEPATH_LENGTH];
-#ifdef _WIN32
-            void* osHandle;
-#endif
-        };
-        */
-
         /**
          * @brief Tests whether a file already exists or not.
          * @param filePath A path to a file to test. 

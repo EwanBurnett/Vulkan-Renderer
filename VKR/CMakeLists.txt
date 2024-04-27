@@ -1,7 +1,7 @@
-# Vulkan Renderer Project File
+# VKR Project File
 # Ewan Burnett - 2024
 
-project("VkRenderer")
+project("VKR" VERSION 0.0.18)
 
 set(CMAKE_CXX_STANDARD 17) 
 
@@ -72,56 +72,57 @@ add_library(imgui
 target_link_libraries(imgui glfw Vulkan::Vulkan)
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
 
-set(VKRENDERER_DEFINITIONS
-	ENABLE_PROFILING=1
-)
+set(VKR_DEFINITIONS )
 
 if(WIN32)
-	set(VKRENDERER_DEFINITIONS ${VKRENDERER_DEFINITIONS} VKR_WIN32)
+	set(VKR_DEFINITIONS ${VKR_DEFINITIONS} VKR_WIN32)
 endif()
 
 # These macros will be defined in Debug builds. 
-set(VKRENDERER_DEBUG_DEFINITIONS 
+set(VKR_DEBUG_DEFINITIONS 
+	VKR_PROFILER_DUMP=0
+	VKR_DEBUG=1
     DEBUG 
     _DEBUG
 )
 
-add_library("VkRenderer" STATIC 
-   "include/VKR.h"
+add_library("VKR" STATIC 
+   "include/VKR/VKR.h"
    "src/VKR.cpp"
-   "include/Types.h" 
-   "include/Window.h" 
+   "include/VKR/Types.h" 
+   "include/VKR/Window.h" 
    "src/Window.cpp" 
-   "include/Logger.h" 
+   "include/VKR/Logger.h" 
    "src/Logger.cpp" 
-   "include/Timer.h" 
-   "include/File.h"
+   "include/VKR/Timer.h" 
+   "include/VKR/File.h"
    "src/File.cpp"
    "src/Timer.cpp"
-   "include/Random.h" 
+   "include/VKR/Random.h" 
    "src/Random.cpp" 
-   "include/Maths.h"
-   "include/Maths/Vector2.h"
-   "include/Maths/Vector3.h" 
-   "include/Maths/Vector4.h" 
-   "include/Maths/Matrix.h" 
-   "include/Vulkan/VkCommon.h" 
+   "include/VKR/Maths.h"
+   "include/VKR/Maths/Vector2.h"
+   "include/VKR/Maths/Vector3.h" 
+   "include/VKR/Maths/Vector4.h" 
+   "include/VKR/Maths/Matrix.h" 
+   "include/VKR/Vulkan/VkCommon.h" 
    "src/Vulkan/VkCommon.cpp" 
-   "include/Vulkan/VkContext.h"
+   "include/VKR/Vulkan/VkContext.h"
    "src/Vulkan/VkContext.cpp"
-   "include/Vulkan/VkInit.h" 
+   "include/VKR/Vulkan/VkInit.h" 
    "src/Vulkan/VkInit.cpp"
-   "include/Vulkan/VkHelpers.h"
+   "include/VKR/Vulkan/VkHelpers.h"
    "src/Vulkan/VkHelpers.cpp"
-   "include/Vulkan/VkSwapchain.h"
+   "include/VKR/Vulkan/VkSwapchain.h"
    "src/Vulkan/VkSwapchain.cpp"
-   "include/Vulkan/VkPipelineBuilder.h"
+   "include/VKR/Vulkan/VkPipelineBuilder.h"
    "src/Vulkan/VkPipelineBuilder.cpp"
 )
 
 # Link our dependencies
-target_link_libraries("VkRenderer" PUBLIC Vulkan::Vulkan Threads::Threads glfw imgui easy_profiler enkiTS PRIVATE assimp VulkanMemoryAllocator)
-target_include_directories("VkRenderer" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR} ${imgui_SOURCE_DIR})
+target_link_libraries("VKR" PUBLIC Vulkan::Vulkan Threads::Threads glfw imgui easy_profiler enkiTS assimp VulkanMemoryAllocator)
+target_include_directories("VKR" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/" ${glfw_SOURCE_DIR} ${stb_SOURCE_DIR} ${imgui_SOURCE_DIR})
 
-target_compile_definitions("VkRenderer" PUBLIC ${VKRENDERER_DEFINITIONS})
-add_compile_definitions("$<$<CONFIG:Debug>:${VKRENDERER_DEBUG_DEFINITIONS}>")
+target_compile_definitions("VKR" PUBLIC ${VKR_DEFINITIONS})
+target_compile_definitions("VKR" PUBLIC "$<$<CONFIG:Debug>:${VKR_DEBUG_DEFINITIONS}>")
+target_compile_definitions("VKR" PUBLIC "$<$<CONFIG:RelWithDebInfo>:VKR_DEBUG=1>")	 # Allow Debug Features in RelWithDbgInfo configuration
