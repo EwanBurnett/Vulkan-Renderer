@@ -8,13 +8,15 @@ A 3D Renderer written using C++ to explore the Vulkan API.
 
 ### External Libraries
 in addition to the above, as the following libraries are used, their dependencies for your platform must also be installed: 
-    - [GLFW v3.4](https://github.com/glfw/glfw.git)
+    - [GLFW 3.4](https://github.com/glfw/glfw.git)
     - [ImGui v1.90.5](https://github.com/ocornut/imgui.git)
     - [Assimp v5.4.0](https://github.com/assimp/assimp.git)
     - [STB](https://github.com/nothings/stb.git)
     - [Easy Profiler v2.1.0](https://github.com/yse/easy_profiler.git)
     - [EnkiTS v1.11](https://github.com/dougbinks/enkiTS.git)
     - [Vulkan Memory Allocator v3.0.1](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git)
+
+Documentation CSS from https://jothepro.github.io/doxygen-awesome-css/
 
 ## Build Instructions
 Clone the repository as follows
