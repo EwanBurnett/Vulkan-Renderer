@@ -15,6 +15,8 @@ namespace VKR {
 
     class VkSwapchain {
     public:
+        VkSwapchain(); 
+
         VkResult Create(const VkContext& context, const Window* pWindow, const uint32_t queueFamilyIndex);
         void Destroy(const VkContext& context);
 

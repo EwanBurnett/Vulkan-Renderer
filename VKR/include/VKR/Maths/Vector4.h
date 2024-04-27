@@ -62,7 +62,7 @@ namespace VKR {
             /**
              * @brief Computes the dot product of two vectors.
             */
-            inline double Dot(const Vector4<T>& other) { return (double)((x * other.x) + (y * other.y) + (z * other.z) + (w * other.w)); }
+            inline T Dot(const Vector4<T>& other) { return ((x * other.x) + (y * other.y) + (z * other.z) + (w * other.w)); }
 
             /**
              * @brief Computes the Magnitude of a Vector.
@@ -86,9 +86,9 @@ namespace VKR {
         typedef Vector4<float> Vector4f;
         typedef Vector4<double> Vector4d;
 
-        template class VKR::Math::Vector4<int>;
-        template class VKR::Math::Vector4<float>;
-        template class VKR::Math::Vector4<double>;
+        template struct VKR::Math::Vector4<int>;
+        template struct VKR::Math::Vector4<float>;
+        template struct VKR::Math::Vector4<double>;
 
     }
 }

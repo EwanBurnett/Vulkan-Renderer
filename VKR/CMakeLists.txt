@@ -14,16 +14,19 @@ include(FetchContent)
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
+	GIT_TAG 3.4
 )
 
 FetchContent_Declare(
     imgui   
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
+	GIT_TAG v1.90.5
 )
 
 FetchContent_Declare(
 	assimp
 	GIT_REPOSITORY https://github.com/assimp/assimp
+	GIT_TAG v5.4.0
 )
 
 FetchContent_Declare(

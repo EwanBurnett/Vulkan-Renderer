@@ -19,8 +19,8 @@ namespace VKR {
         template<typename T>
         struct Vector2 {
             Vector2(T X = static_cast<T>(0), T Y = static_cast<T>(0)) {
-                x = X;
-                y = Y;
+                this->x = X; 
+                this->y = Y;
             }
 
             union {

@@ -134,19 +134,19 @@ namespace VKR {
 
             inline static constexpr Matrix4x4 XRotationFromDegrees(const T degrees) {
                 EASY_FUNCTION(profiler::colors::Yellow800);
-                const double radians = DegToRad(degrees);
+                const T radians = DegToRad(degrees);
                 return Matrix4x4::XRotation(radians);
             }
 
             inline static constexpr Matrix4x4 YRotationFromDegrees(const T degrees) {
                 EASY_FUNCTION(profiler::colors::Yellow800);
-                const double radians = DegToRad(degrees);
+                const T radians = DegToRad(degrees);
                 return Matrix4x4::YRotation(radians);
             }
 
             inline static constexpr Matrix4x4 ZRotationFromDegrees(const T degrees) {
                 EASY_FUNCTION(profiler::colors::Yellow800);
-                const double radians = DegToRad(degrees);
+                const T radians = DegToRad(degrees);
                 return Matrix4x4::ZRotation(radians);
             }
 

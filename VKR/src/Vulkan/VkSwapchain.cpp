@@ -7,6 +7,20 @@
 #include <assert.h>
 #include <easy/profiler.h>
 
+VKR::VkSwapchain::VkSwapchain() {
+    m_Swapchain = VK_NULL_HANDLE; 
+    m_Surface = VK_NULL_HANDLE; 
+    m_SurfaceCapabilities = {}; 
+    m_SurfaceFormat = {
+        VK_FORMAT_UNDEFINED,
+        VK_COLORSPACE_SRGB_NONLINEAR_KHR
+    }; 
+    m_SurfacePresentMode = VK_PRESENT_MODE_FIFO_KHR;
+
+    m_ColourClearValue.color = { 0, 0, 0, 0 };
+    m_DepthStencilClearValue.depthStencil = { 1.0, 0x00 }; 
+}
+
 VkResult VKR::VkSwapchain::Create(const VkContext& context, const Window* pWindow, const uint32_t queueFamilyIndex)
 {
     EASY_FUNCTION(profiler::colors::Red500);

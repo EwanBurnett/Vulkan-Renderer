@@ -74,7 +74,7 @@ namespace VKR {
         template <typename T>
         inline constexpr T DegToRad(const T& degrees) {
             static_assert(std::is_arithmetic<T>(), "Error: T is not Arithmetic!\n");
-            return degrees * Math::Deg2Rad;
+            return static_cast<T>(degrees * Math::Deg2Rad);
         }
 
         /**

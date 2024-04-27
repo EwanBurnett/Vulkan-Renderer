@@ -20,6 +20,7 @@ namespace VKR {
         struct Vector3 {
             Vector3(T X = static_cast<T>(0), T Y = static_cast<T>(0), T Z = static_cast<T>(0)) {
                 static_assert(std::is_arithmetic<T>(), "Error: T is not Arithmetic!\n");
+                
                 x = X;
                 y = Y;
                 z = Z;
@@ -103,7 +104,7 @@ namespace VKR {
             /**
              * @brief Computes the Squared Length of a Vector.
             */
-            inline double LengthSquared() { return (x * x) + (y * y) + (z * z); }
+            inline double LengthSquared() { return static_cast<double>((x * x) + (y * y) + (z * z)); }
 
             /**
              * @brief Returns the Normalized form of a vector, dividing each component by its length.
