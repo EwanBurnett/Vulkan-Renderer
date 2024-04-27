@@ -1,0 +1,28 @@
+var structVKR_1_1Math_1_1Vector4 =
+[
+    [ "Vector4", "structVKR_1_1Math_1_1Vector4.html#ac9ab1b0ad5248a29fa64525f58610dd6", null ],
+    [ "Vector4", "structVKR_1_1Math_1_1Vector4.html#affcfa022e2605016a9b7b6362fe9964a", null ],
+    [ "Dot", "structVKR_1_1Math_1_1Vector4.html#a7b0a24e1295a66fc516a7bb27782d16b", null ],
+    [ "Length", "structVKR_1_1Math_1_1Vector4.html#a87e16bf655eaf4b0543913dc3b6e3230", null ],
+    [ "Normalize", "structVKR_1_1Math_1_1Vector4.html#a37561ba2bda0419398e5a8507e4c8bac", null ],
+    [ "operator*=", "structVKR_1_1Math_1_1Vector4.html#a5b5c5deca8384520f27f33da4c3907e3", null ],
+    [ "operator*=", "structVKR_1_1Math_1_1Vector4.html#a3b718ba25ea51e343cdf6ebe980f52fe", null ],
+    [ "operator+=", "structVKR_1_1Math_1_1Vector4.html#a4b59a805350d58729afd8972b7f1bf5b", null ],
+    [ "operator+=", "structVKR_1_1Math_1_1Vector4.html#a78c73f5c23e075e7f78b810283b330d9", null ],
+    [ "operator-=", "structVKR_1_1Math_1_1Vector4.html#a32223d2a42ca070688d0addda1c0a9c7", null ],
+    [ "operator-=", "structVKR_1_1Math_1_1Vector4.html#a907f33f85b937d37f3f5453d4b66bb34", null ],
+    [ "operator/=", "structVKR_1_1Math_1_1Vector4.html#a08df960a964b87733b0f7fa185cddcf6", null ],
+    [ "operator/=", "structVKR_1_1Math_1_1Vector4.html#a53d36f7feb9af9827222509a6980e1f5", null ],
+    [ "Set", "structVKR_1_1Math_1_1Vector4.html#aa95a7529e0d80b71601402894aadfec8", null ],
+    [ "operator!=", "structVKR_1_1Math_1_1Vector4.html#a0654eda1fdf857eb3d4f80eb6662fabc", null ],
+    [ "operator*", "structVKR_1_1Math_1_1Vector4.html#a2110bb943d74e2575851268f11f463a0", null ],
+    [ "operator+", "structVKR_1_1Math_1_1Vector4.html#af2382ab91e32ff708ff81dbb1b7c1628", null ],
+    [ "operator-", "structVKR_1_1Math_1_1Vector4.html#a50711126121916af3fa3dfcc0660fa85", null ],
+    [ "operator/", "structVKR_1_1Math_1_1Vector4.html#a572fe83ca13c475f129a8dff57873911", null ],
+    [ "operator==", "structVKR_1_1Math_1_1Vector4.html#a8e97577765a7d1dcafbfd80c9522aedd", null ],
+    [ "arr", "structVKR_1_1Math_1_1Vector4.html#a674ae657f546d052f2bb97b340837ef0", null ],
+    [ "w", "structVKR_1_1Math_1_1Vector4.html#ab617bf8a7e1fa674803c6211aeca0ed4", null ],
+    [ "x", "structVKR_1_1Math_1_1Vector4.html#af171aed09eace73cd5f9437fc26e333f", null ],
+    [ "y", "structVKR_1_1Math_1_1Vector4.html#abcff8b3140de0df99ea823da85d37aa4", null ],
+    [ "z", "structVKR_1_1Math_1_1Vector4.html#aa04094ff0e9b18e35aa1973099fb629f", null ]
+];
