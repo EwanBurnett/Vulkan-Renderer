@@ -6,7 +6,7 @@ VKR::Status VKR::Window::Create(const char* title, const uint32_t width, const u
 {
     EASY_FUNCTION(profiler::colors::Green500);
 
-    Log::Message("[VKR]\tCreating Window \"%s\" (%dx%d)\n", title, width, height); 
+    Log::Debug("[VKR]\tCreating Window \"%s\" (%dx%d)\n", title, width, height); 
     m_Width = width;
     m_Height = height;
     m_Title = title;

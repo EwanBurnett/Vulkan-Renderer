@@ -1,4 +1,4 @@
-/**
+﻿/**
 *   @file 01-Hello-Triangle.cpp
 *   @brief Demo Project utilizing VKR to display a Triangle within a window.
 *   @author Ewan Burnett (EwanBurnettSK@Outlook.com)
@@ -22,14 +22,17 @@
 #include <VKR/Logger.h>
 #include <easy/profiler.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 constexpr uint32_t WINDOW_WIDTH = 600;
 constexpr uint32_t WINDOW_HEIGHT = 400;
 
 constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 
+constexpr char* PIPELINE_CACHE_PATH = ".pipelinecache";
 
 using namespace VKR;
-
 
 class HelloTriangleApp : public DemoApp {
 private:
@@ -48,6 +51,24 @@ private:
     struct BufferResource {
         VkBuffer buffer;
         VmaAllocation allocation;
+    };
+
+    /**
+     * @brief Storage class for Pipeline Statistics
+    */
+    struct PipelineStatistics
+    {
+        uint64_t inputAssemblyVertices;
+        uint64_t inputAssemblyPrimitives;
+        uint64_t vertexShaderInvocations;
+        uint64_t geometryShaderInvocations;
+        uint64_t geometryShaderPrimitives;
+        uint64_t clippingInvocations;
+        uint64_t clippingOutputPrimitives;
+        uint64_t fragmentShaderInvocations;
+        uint64_t tessellationControlShaderPatches;
+        uint64_t tessellationEvaluationShaderInvocations;
+        uint64_t computeShaderInvocations;
     };
 
 public:
@@ -108,9 +129,9 @@ private:
     VkRect2D m_Scissor;
 
     VkQueryPool m_PipelineQueryPool;
-    std::vector<uint64_t> m_PipelineStatistics;
+    PipelineStatistics m_PipelineStatistics;
     VkQueryPool m_OcclusionQueryPool;
-    std::vector<uint64_t> m_OcclusionStatistics;
+    uint64_t m_OcclusionStatistics;
 };
 
 
@@ -123,6 +144,12 @@ int main() {
     //Create a Window. 
     Window window;
     window.Create("VKR Sample 01 - Hello Triangle", WINDOW_WIDTH, WINDOW_HEIGHT);
+    //Set the window icon.
+    {
+        GLFWimage icon;
+        icon.pixels = stbi_load("Data/VKR_Icon.png", &icon.width, &icon.height, nullptr, 0);
+        glfwSetWindowIcon(window.GLFWHandle(), 1, &icon);
+    }
 
     HelloTriangleApp demoApp;
     demoApp.Init(window);
@@ -150,7 +177,22 @@ int main() {
 
 HelloTriangleApp::HelloTriangleApp() : DemoApp()
 {
+    EASY_FUNCTION();
+
     m_MSAASamples = VK_SAMPLE_COUNT_4_BIT;
+    m_CommandPool = VK_NULL_HANDLE;
+    m_FrameInFlight = 0;
+    m_ImageIndex = 0;
+    m_OcclusionQueryPool = VK_NULL_HANDLE;
+    m_Pipeline = VK_NULL_HANDLE;
+    m_PipelineLayout = VK_NULL_HANDLE;
+    m_PipelineQueryPool = VK_NULL_HANDLE;
+    m_Queue = VK_NULL_HANDLE;
+    m_QueueFamilyIndex = -1;
+    m_RenderPass = VK_NULL_HANDLE;
+    m_Scissor = {};
+    m_Viewport = {};
+
 }
 
 
@@ -162,6 +204,7 @@ void HelloTriangleApp::Init(const VKR::Window& window)
     initTimer.Start();
 
     //Vulkan Instance Creation
+    Log::Message("Creating Vulkan Instance.\n");
     {
         const std::vector<const char*> instanceLayers = {
     #if DEBUG
@@ -187,13 +230,14 @@ void HelloTriangleApp::Init(const VKR::Window& window)
     }
 
 #if DEBUG
+    Log::Message("Creating Vulkan Debug Objects.\n");
     //Vulkan Debug Callback Object Creation
     {
         m_Context.CreateDebugLogger();
         m_Context.CreateDebugReporter();
     }
 #endif
-
+    Log::Message("Creating Vulkan Device.\n");
     //Vulkan Device Creation
     {
         const std::vector<const char*> deviceExtensions = {
@@ -226,6 +270,7 @@ void HelloTriangleApp::Init(const VKR::Window& window)
     m_Queue = m_Context.GetDeviceQueue(m_QueueFamilyIndex, 0);
 
 
+    Log::Message("Creating Vulkan Resources.\n");
     //Create the Command Pool
     m_Context.CreateCommandPool(m_QueueFamilyIndex, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &m_CommandPool);
 
@@ -245,9 +290,26 @@ void HelloTriangleApp::Init(const VKR::Window& window)
 
     //Initialize the ImGui renderer
     m_ImGuiRenderer.Init(m_Context, window);
+    ImGuiIO& io = ImGui::GetIO();
 
     //Create the Swapchain
     CreateSwapchain(window, m_MSAASamples);
+    io.Fonts->AddFontFromFileTTF("Data/Fonts/NotoSansJP-Regular.ttf", 18, NULL, io.Fonts->GetGlyphRangesJapanese());
+
+    Log::Message("Creating Graphics Pipeline.\n");
+    //Load the Pipeline Cache if present
+    VkPipelineCache pipelineCache;
+    {
+        VkPipelineCacheCreateInfo pipelineCacheCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
+        if (VKR::IO::FileExists(PIPELINE_CACHE_PATH)) {
+            std::vector<char> pipelineCacheBlob;
+            VKR::IO::ReadFile(PIPELINE_CACHE_PATH, pipelineCacheBlob);
+            pipelineCacheCreateInfo.initialDataSize = pipelineCacheBlob.size();
+            pipelineCacheCreateInfo.pInitialData = pipelineCacheBlob.data();
+        }
+
+        vkCreatePipelineCache(m_Context.GetDevice(), &pipelineCacheCreateInfo, nullptr, &pipelineCache);
+    }
 
     //Create the Graphics Pipeline
     {
@@ -255,30 +317,16 @@ void HelloTriangleApp::Init(const VKR::Window& window)
         VkShaderModule vertexShaderModule;
         {
             std::vector<char> vs_source;
-            VKR::IO::ReadFile("Shaders/vs_triangle.spirv", vs_source);
+            VKR::IO::ReadFile("Data/Shaders/vs_triangle.spirv", vs_source);
             m_Context.CreateShaderModule(vs_source.data(), vs_source.size(), &vertexShaderModule);
         }
 
         VkShaderModule fragmentShaderModule;
         {
             std::vector<char> fs_source;
-            VKR::IO::ReadFile("Shaders/fs_triangle.spirv", fs_source);
+            VKR::IO::ReadFile("Data/Shaders/fs_triangle.spirv", fs_source);
             m_Context.CreateShaderModule(fs_source.data(), fs_source.size(), &fragmentShaderModule);
         }
-
-
-        VKR::VkPipelineBuilder builder;
-        builder.AddShaderStage(vertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
-        builder.AddShaderStage(fragmentShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT, "main");
-
-        //builder.SetVertexInputState(0, nullptr, 0, nullptr);    //Our shader will handle the triangle vertices internally.
-        builder.SetInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false);
-
-        //builder.SetTessellationState(0);
-
-        builder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
-        builder.SetMSAAState(m_MSAASamples, false, false);  //TODO: Other MSAA Pipelines
-        builder.SetDepthStencilState(true, true, true);
 
         VkPipelineColorBlendAttachmentState blendAttachment = {};
         blendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -290,6 +338,13 @@ void HelloTriangleApp::Init(const VKR::Window& window)
         blendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
         blendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
+        VKR::VkPipelineBuilder builder;
+        builder.AddShaderStage(vertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
+        builder.AddShaderStage(fragmentShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT, "main");
+        builder.SetInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false);
+        builder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+        builder.SetMSAAState(m_MSAASamples, false, false);  //TODO: Other MSAA Pipelines
+        builder.SetDepthStencilState(true, true, true);
         builder.SetBlendState(false, VK_LOGIC_OP_COPY, 1, &blendAttachment);
 
         const std::vector<VkDynamicState> dynamicStates = {
@@ -302,20 +357,40 @@ void HelloTriangleApp::Init(const VKR::Window& window)
 
         VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = builder.BuildGraphicsPipeline(m_PipelineLayout, m_RenderPass, 0);
 
-        m_Context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline);
+        m_Context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, pipelineCache, &m_Pipeline);
 
         m_Context.DestroyShaderModule(vertexShaderModule);
         m_Context.DestroyShaderModule(fragmentShaderModule);
 
+        //Write the Pipeline Cache to disk 
+        {
+            uint64_t cacheDataSize = 0;
+            vkGetPipelineCacheData(m_Context.GetDevice(), pipelineCache, &cacheDataSize, nullptr);
+            std::vector<char> cacheData(cacheDataSize);
+            vkGetPipelineCacheData(m_Context.GetDevice(), pipelineCache, &cacheDataSize, cacheData.data());
+
+            VKR::IO::WriteFile(PIPELINE_CACHE_PATH, cacheData.data(), cacheData.size());
+            vkDestroyPipelineCache(m_Context.GetDevice(), pipelineCache, nullptr);
+        }
     }
 
+    Log::Message("Creating Query Pools.\n");
     //Create Query Pools
     {
-        m_PipelineStatistics.resize(6);
-        m_Context.CreateQueryPool(VK_QUERY_TYPE_PIPELINE_STATISTICS, 1, VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT | VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT | VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT |
-            VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT | VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT | VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT, &m_PipelineQueryPool);
+        m_Context.CreateQueryPool(VK_QUERY_TYPE_PIPELINE_STATISTICS, 1,
+            VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_GEOMETRY_SHADER_INVOCATIONS_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_GEOMETRY_SHADER_PRIMITIVES_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_TESSELLATION_CONTROL_SHADER_PATCHES_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_TESSELLATION_EVALUATION_SHADER_INVOCATIONS_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT
+            , &m_PipelineQueryPool);
 
-        m_OcclusionStatistics.resize(1);  
         m_Context.CreateQueryPool(VK_QUERY_TYPE_OCCLUSION, 1, 0, &m_OcclusionQueryPool);
 
     }
@@ -348,17 +423,17 @@ void HelloTriangleApp::Update()
             clearValues
         };
         vkCmdBeginRenderPass(m_Commands[m_FrameInFlight], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        //Draw Stuff. 
-        vkCmdSetViewport(m_Commands[m_FrameInFlight], 0, 1, &m_Viewport);
-        vkCmdSetScissor(m_Commands[m_FrameInFlight], 0, 1, &m_Scissor);
-        vkCmdBindPipeline(m_Commands[m_FrameInFlight], VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
-        vkCmdDraw(m_Commands[m_FrameInFlight], 3, 1, 0, 0);
-
-        DrawGUI();
-
-        vkCmdEndRenderPass(m_Commands[m_FrameInFlight]);
     }
+
+    //Draw Stuff. 
+    vkCmdSetViewport(m_Commands[m_FrameInFlight], 0, 1, &m_Viewport);
+    vkCmdSetScissor(m_Commands[m_FrameInFlight], 0, 1, &m_Scissor);
+    vkCmdBindPipeline(m_Commands[m_FrameInFlight], VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+    vkCmdDraw(m_Commands[m_FrameInFlight], 3, 1, 0, 0);
+
+    DrawGUI();
+
+    vkCmdEndRenderPass(m_Commands[m_FrameInFlight]);
 }
 
 void HelloTriangleApp::FixedUpdate()
@@ -429,7 +504,7 @@ void HelloTriangleApp::EndFrame()
 
     //Retrieve Pipeline Query Results
     {
-        const uint64_t bufferSize = static_cast<uint32_t>(m_PipelineStatistics.size()) * sizeof(uint64_t);
+        const uint64_t bufferSize = static_cast<uint32_t>(sizeof(m_PipelineStatistics));
 
         vkGetQueryPoolResults(
             m_Context.GetDevice(),
@@ -437,7 +512,7 @@ void HelloTriangleApp::EndFrame()
             0,
             1,
             bufferSize,
-            m_PipelineStatistics.data(),
+            &m_PipelineStatistics,
             0,
             VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT
         );
@@ -448,10 +523,10 @@ void HelloTriangleApp::EndFrame()
             0,
             1,
             sizeof(uint64_t),
-            m_OcclusionStatistics.data(),
+            &m_OcclusionStatistics,
             0,
             VK_QUERY_CONTROL_PRECISE_BIT
-        ); 
+        );
     }
 
     //Present the image to the screen. 
@@ -471,10 +546,10 @@ void HelloTriangleApp::Shutdown()
     m_Context.DestroyQueryPool(m_PipelineQueryPool);
 
     m_ImGuiRenderer.Shutdown(m_Context);
-    
+
     //Destroy application resources
 
-    m_Context.DestroyPipelineLayout(m_PipelineLayout); 
+    m_Context.DestroyPipelineLayout(m_PipelineLayout);
     m_Context.DestroyPipeline(m_Pipeline);
 
     for (uint32_t i = 0; i < m_Swapchain.GetImageCount(); i++) {
@@ -575,13 +650,13 @@ void HelloTriangleApp::DrawGUI()
 
         if (bShowVulkanStats) {
             ImGui::Separator();
-            ImGui::Text("Vertex Shader Invocations: %d", m_PipelineStatistics.at(2));
-            ImGui::Text("Fragment Shader Invocations: %d", m_PipelineStatistics.at(5));
-            ImGui::Text("Input Vertices: %d", m_PipelineStatistics.at(0));
-            ImGui::Text("Input Primitives: %d", m_PipelineStatistics.at(1));
-            ImGui::Text("Clipping Primitives: %d", m_PipelineStatistics.at(4));
-            ImGui::Text("Clipping Invocations: %d", m_PipelineStatistics.at(3));
-            ImGui::Text("Samples: %d", m_OcclusionStatistics.at(0));
+            ImGui::Text("Vertex Shader Invocations: %d", m_PipelineStatistics.vertexShaderInvocations);
+            ImGui::Text("Fragment Shader Invocations: %d", m_PipelineStatistics.fragmentShaderInvocations);
+            ImGui::Text("Input Vertices Count: %d", m_PipelineStatistics.inputAssemblyVertices);
+            ImGui::Text("Input Primitives Count: %d", m_PipelineStatistics.inputAssemblyPrimitives);
+            ImGui::Text("Clipping Invocations: %d", m_PipelineStatistics.clippingInvocations);
+            ImGui::Text("Clipping Primitives: %d", m_PipelineStatistics.clippingOutputPrimitives);
+            ImGui::Text("Passed Fragments: %d", m_OcclusionStatistics);
         }
 
         if (ImGui::BeginPopupContextWindow())
@@ -627,8 +702,8 @@ void HelloTriangleApp::DestroyImageResource(ImageResource& resource)
 void HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCountFlagBits samples)
 {
     EASY_FUNCTION();
+    Log::Message("Creating Swapchain.\n");
     //TODO: Release old resources if present. 
-
     m_Swapchain.Create(m_Context, &window, m_QueueFamilyIndex);
     //Create the Render Pass, and its resources
     {

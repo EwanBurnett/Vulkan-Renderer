@@ -72,22 +72,16 @@ VkResult VKR::VkContext::DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT&
 
 VkResult VKR::VkContext::CreateDebugLogger()
 {
-#ifdef DEBUG
     VkDebugUtilsMessengerCreateInfoEXT createInfo = VkInit::MakeDebugUtilsMessengerCreateInfoEXT();
     createInfo.pfnUserCallback = &VkContext::DebugLog;
     createInfo.pUserData = this;
 
     return CreateDebugUtilsMessengerEXT(&createInfo, nullptr, &m_DebugLogger);
-#else
-    return VK_SUCCESS;
-#endif
 }
 
 void VKR::VkContext::DestroyDebugLogger()
 {
-#ifdef DEBUG
     DestroyDebugUtilsMessengerEXT(m_DebugLogger, nullptr);
-#endif
 }
 
 VkResult VKR::VkContext::CreateDebugReportCallbackEXT(const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pDebugReporter)
@@ -116,28 +110,20 @@ VkResult VKR::VkContext::DestroyDebugReportCallbackEXT(VkDebugReportCallbackEXT&
 
 VkResult VKR::VkContext::CreateDebugReporter()
 {
-#ifdef DEBUG
     VkDebugReportCallbackCreateInfoEXT createInfo = VkInit::MakeDebugReportCallbackCreateInfoEXT();
     createInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)&VkContext::DebugReport;
     createInfo.pUserData = this;
 
     return CreateDebugReportCallbackEXT(&createInfo, nullptr, &m_DebugReporter);
-
-#else
-    return VK_SUCCESS;
-#endif
 }
 
 void VKR::VkContext::DestroyDebugReporter()
 {
-#ifdef DEBUG
     DestroyDebugReportCallbackEXT(m_DebugReporter, nullptr);
-#endif
 }
 
 VkResult VKR::VkContext::DebugSetObjectName(uint64_t objectHandle, VkObjectType objectType, const char* name)
 {
-#ifdef DEBUG
     const VkDebugUtilsObjectNameInfoEXT nameInfo = {
         VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
         nullptr,
@@ -154,9 +140,6 @@ VkResult VKR::VkContext::DebugSetObjectName(uint64_t objectHandle, VkObjectType 
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 
-#else
-    return VK_SUCCESS;
-#endif
 }
 
 #endif
