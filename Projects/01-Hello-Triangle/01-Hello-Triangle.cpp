@@ -101,13 +101,21 @@ private:
     std::vector<ImageResource> m_RenderTargets;
     std::vector<VkFramebuffer> m_FrameBuffers;
 
+    VkPipelineLayout m_PipelineLayout;
+    VkPipeline m_Pipeline;
+
     VkImGui m_ImGuiRenderer;
+
+    VkViewport m_Viewport;
+    VkRect2D m_Scissor;
 };
 
 
 int main() {
     //Initialize the Application. 
     VKR::Init();
+
+    //EASY_PROFILER_ENABLE;
 
     //Create a Window. 
     Window window;
@@ -231,9 +239,68 @@ void HelloTriangleApp::Init(const VKR::Window& window)
         m_Context.CreateSemaphore(&m_sRenderFinished[i]);
     }
 
-
+    //Initialize the ImGui renderer
     m_ImGuiRenderer.Init(m_Context, window);
+
+    //Create the Swapchain
     CreateSwapchain(window, m_MSAASamples);
+
+    //Create the Graphics Pipeline
+    {
+        m_Context.CreatePipelineLayout(0, nullptr, 0, nullptr, &m_PipelineLayout);
+        VkShaderModule vertexShaderModule;
+        {
+            std::vector<char> vs_source;
+            VKR::IO::ReadFile("Shaders/vs_triangle.spirv", vs_source);
+            m_Context.CreateShaderModule(vs_source.data(), vs_source.size(), &vertexShaderModule);
+        }
+
+        VkShaderModule fragmentShaderModule;
+        {
+            std::vector<char> fs_source;
+            VKR::IO::ReadFile("Shaders/fs_triangle.spirv", fs_source);
+            m_Context.CreateShaderModule(fs_source.data(), fs_source.size(), &fragmentShaderModule);
+        }
+
+
+        VKR::VkPipelineBuilder builder;
+        builder.AddShaderStage(vertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
+        builder.AddShaderStage(fragmentShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT, "main");
+
+        //builder.SetVertexInputState(0, nullptr, 0, nullptr);    //Our shader will handle the triangle vertices internally.
+        builder.SetInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false);
+
+        //builder.SetTessellationState(0);
+
+        builder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+        builder.SetMSAAState(m_MSAASamples, false, false);  //TODO: Other MSAA Pipelines
+        builder.SetDepthStencilState(true, true, true);
+
+        VkPipelineColorBlendAttachmentState blendAttachment = {};
+        blendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        blendAttachment.blendEnable = VK_TRUE;
+        blendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        blendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        blendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+        blendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        blendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+        blendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
+        builder.SetBlendState(false, VK_LOGIC_OP_COPY, 1, &blendAttachment);
+
+        const std::vector<VkDynamicState> dynamicStates = {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR
+        };
+        builder.SetDynamicState(dynamicStates.size(), dynamicStates.data());
+
+        builder.SetViewportState(1, &m_Viewport, 1, &m_Scissor);
+
+        VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = builder.BuildGraphicsPipeline(m_PipelineLayout, m_RenderPass, 0);
+
+        m_Context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline);
+
+    }
 
     //Start the application timer after resource initialization
     m_Timer.Start();
@@ -266,6 +333,10 @@ void HelloTriangleApp::Update()
         vkCmdBeginRenderPass(m_Commands[m_FrameInFlight], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         //Draw Stuff. 
+        vkCmdSetViewport(m_Commands[m_FrameInFlight], 0, 1, &m_Viewport);
+        vkCmdSetScissor(m_Commands[m_FrameInFlight], 0, 1, &m_Scissor);
+        vkCmdBindPipeline(m_Commands[m_FrameInFlight], VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+        vkCmdDraw(m_Commands[m_FrameInFlight], 3, 1, 0, 0);
 
         DrawGUI();
 
@@ -403,9 +474,64 @@ void HelloTriangleApp::Synchronize()
 
 void HelloTriangleApp::DrawGUI()
 {
+    EASY_FUNCTION();
     m_ImGuiRenderer.BeginFrame();
-    bool bShowDemo = true;
-    ImGui::ShowDemoWindow(&bShowDemo);
+
+    //GUI control flags
+    static bool bShowDemo = false;
+    static bool bShowApplicationStats = false;
+    static bool bShowVulkanStats = false;
+
+    if (bShowDemo) {
+        ImGui::ShowDemoWindow(&bShowDemo);
+    }
+
+    //Render an overlay with application information. 
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    const float padding = 10.0f;
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+    ImVec2 work_size = viewport->WorkSize;
+    ImVec2 window_pos, window_pos_pivot;
+    window_pos.x = work_pos.x + work_size.x - padding;
+    window_pos.y = work_pos.y + padding;
+    window_pos_pivot.x = 1.0f;
+    window_pos_pivot.y = 0.0f;
+    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+    flags |= ImGuiWindowFlags_NoMove;
+
+
+    if (ImGui::Begin("Application Info", nullptr, flags))
+    {
+        ImGui::Text("VKR Samples 01 - Hello Triangle\nRight Click for options.\nEwan Burnett (2024)");
+        if (bShowApplicationStats) {
+            ImGui::Separator();
+            ImGui::Text("Frame Count: %d", m_FrameCount);
+            ImGui::Text("DeltaTime (ms): %f", m_DeltaTime);
+            ImGui::Text("FPS: %d", m_FPS);
+            ImGui::Text("Runtime (s): %f", m_RunTime);
+        }
+
+        if (bShowVulkanStats) { //TODO: Pipeline Statistics Queries
+            ImGui::Separator();
+            ImGui::Text("Vertex Shader Invocations: %d", 0);
+            ImGui::Text("Fragment Shader Invocations: %d", 0);
+            ImGui::Text("Input Vertices: %d", 0);
+            ImGui::Text("Input Primitives: %d", 0);
+        }
+
+        if (ImGui::BeginPopupContextWindow())
+        {
+            ImGui::MenuItem("Show Application Statistics", nullptr, &bShowApplicationStats);
+            ImGui::MenuItem("Show Vulkan Statistics", nullptr, &bShowVulkanStats);
+            ImGui::MenuItem("Show ImGui Demo", nullptr, &bShowDemo);
+
+            ImGui::EndPopup();
+        }
+    }
+    ImGui::End();
+
     m_ImGuiRenderer.EndFrame();
 
     m_ImGuiRenderer.Draw(&m_Commands[m_FrameInFlight]);
@@ -413,6 +539,7 @@ void HelloTriangleApp::DrawGUI()
 
 void HelloTriangleApp::CreateColourRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource)
 {
+    EASY_FUNCTION();
     m_Context.CreateImage(VK_IMAGE_TYPE_2D, { extents.width, extents.height, 1 }, MSAASamples, format, VK_IMAGE_TILING_OPTIMAL, usage, VMA_MEMORY_USAGE_AUTO, 0, &pRenderTargetResource->allocation, &pRenderTargetResource->image);
 
     m_Context.CreateImageView(pRenderTargetResource->image, format, VK_IMAGE_ASPECT_COLOR_BIT, &pRenderTargetResource->view);
@@ -420,6 +547,7 @@ void HelloTriangleApp::CreateColourRenderTarget(const VkExtent2D extents, const 
 
 void HelloTriangleApp::CreateDepthRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource)
 {
+    EASY_FUNCTION();
     m_Context.CreateImage(VK_IMAGE_TYPE_2D, { extents.width, extents.height, 1 }, MSAASamples, format, VK_IMAGE_TILING_OPTIMAL, usage, VMA_MEMORY_USAGE_AUTO, 0, &pRenderTargetResource->allocation, &pRenderTargetResource->image);
 
     m_Context.CreateImageView(pRenderTargetResource->image, format, VK_IMAGE_ASPECT_DEPTH_BIT, &pRenderTargetResource->view);
@@ -427,12 +555,14 @@ void HelloTriangleApp::CreateDepthRenderTarget(const VkExtent2D extents, const V
 
 void HelloTriangleApp::DestroyImageResource(ImageResource& resource)
 {
+    EASY_FUNCTION();
     m_Context.DestroyImageView(resource.view);
     m_Context.DestroyImage(resource.image, resource.allocation);
 }
 
 void HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCountFlagBits samples)
 {
+    EASY_FUNCTION();
     //TODO: Release old resources if present. 
 
     m_Swapchain.Create(m_Context, &window, m_QueueFamilyIndex);
@@ -442,6 +572,16 @@ void HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCountFlagBi
             window.GetWidth(),
             window.GetHeight()
         };
+
+        m_Viewport.x = 0;
+        m_Viewport.y = 0; // -static_cast<float>(extents.height);
+        m_Viewport.width = (float)extents.width;
+        m_Viewport.height = (float)extents.height;
+        m_Viewport.minDepth = 0.0f;
+        m_Viewport.maxDepth = 1.0f;
+
+        m_Scissor.offset = { 0, 0 };
+        m_Scissor.extent = extents;
 
         m_RenderTargets.resize(3);
         CreateColourRenderTarget(extents, VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, samples, &m_RenderTargets[0]);  //Colour Attachment
