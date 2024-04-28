@@ -31,8 +31,6 @@ constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 using namespace VKR;
 
 
-
-
 class HelloTriangleApp : public DemoApp {
 private:
     /**
@@ -108,6 +106,11 @@ private:
 
     VkViewport m_Viewport;
     VkRect2D m_Scissor;
+
+    VkQueryPool m_PipelineQueryPool;
+    std::vector<uint64_t> m_PipelineStatistics;
+    VkQueryPool m_OcclusionQueryPool;
+    std::vector<uint64_t> m_OcclusionStatistics;
 };
 
 
@@ -214,6 +217,7 @@ void HelloTriangleApp::Init(const VKR::Window& window)
         const VkDeviceQueueCreateInfo qci = VkInit::MakeDeviceQueueCreateInfo(0, 1, queuePriorities);
 
         VkPhysicalDeviceFeatures features = {};
+        features.pipelineStatisticsQuery = true;
         m_Context.CreateDevice(deviceExtensions.size(), deviceExtensions.data(), 1, &qci, &features);
     }
 
@@ -300,8 +304,21 @@ void HelloTriangleApp::Init(const VKR::Window& window)
 
         m_Context.CreateGraphicsPipelines(1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline);
 
+        m_Context.DestroyShaderModule(vertexShaderModule);
+        m_Context.DestroyShaderModule(fragmentShaderModule);
+
     }
 
+    //Create Query Pools
+    {
+        m_PipelineStatistics.resize(6);
+        m_Context.CreateQueryPool(VK_QUERY_TYPE_PIPELINE_STATISTICS, 1, VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT | VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT | VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT |
+            VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT | VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT | VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT, &m_PipelineQueryPool);
+
+        m_OcclusionStatistics.resize(1);  
+        m_Context.CreateQueryPool(VK_QUERY_TYPE_OCCLUSION, 1, 0, &m_OcclusionQueryPool);
+
+    }
     //Start the application timer after resource initialization
     m_Timer.Start();
 
@@ -371,15 +388,24 @@ void HelloTriangleApp::BeginFrame()
                nullptr
     };
     vkBeginCommandBuffer(m_Commands[m_FrameInFlight], &beginInfo);
+
+    vkCmdResetQueryPool(m_Commands[m_FrameInFlight], m_OcclusionQueryPool, 0, 1);
+    vkCmdResetQueryPool(m_Commands[m_FrameInFlight], m_PipelineQueryPool, 0, 1);
+    vkCmdBeginQuery(m_Commands[m_FrameInFlight], m_PipelineQueryPool, 0, 0);
+    vkCmdBeginQuery(m_Commands[m_FrameInFlight], m_OcclusionQueryPool, 0, 0);
 }
 
 void HelloTriangleApp::EndFrame()
 {
     EASY_FUNCTION();
 
+    //Query the pipeline
+    vkCmdEndQuery(m_Commands[m_FrameInFlight], m_OcclusionQueryPool, 0);
+    vkCmdEndQuery(m_Commands[m_FrameInFlight], m_PipelineQueryPool, 0);
 
     //End command buffer recording
     vkEndCommandBuffer(m_Commands[m_FrameInFlight]);
+
 
     //Submit the command buffer to the queue. 
     {
@@ -401,6 +427,33 @@ void HelloTriangleApp::EndFrame()
         vkQueueSubmit(m_Queue, 1, &submitInfo, m_fFrameReady[m_FrameInFlight]);
     }
 
+    //Retrieve Pipeline Query Results
+    {
+        const uint64_t bufferSize = static_cast<uint32_t>(m_PipelineStatistics.size()) * sizeof(uint64_t);
+
+        vkGetQueryPoolResults(
+            m_Context.GetDevice(),
+            m_PipelineQueryPool,
+            0,
+            1,
+            bufferSize,
+            m_PipelineStatistics.data(),
+            0,
+            VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT
+        );
+
+        vkGetQueryPoolResults(
+            m_Context.GetDevice(),
+            m_OcclusionQueryPool,
+            0,
+            1,
+            sizeof(uint64_t),
+            m_OcclusionStatistics.data(),
+            0,
+            VK_QUERY_CONTROL_PRECISE_BIT
+        ); 
+    }
+
     //Present the image to the screen. 
     m_Swapchain.Present(m_Queue, m_sRenderFinished[m_FrameInFlight], &m_ImageIndex);
 
@@ -414,8 +467,15 @@ void HelloTriangleApp::Shutdown()
     //Wait for all device work to be completed before attempting to destroy any objects. 
     vkDeviceWaitIdle(m_Context.GetDevice());
 
-    //Destroy application resources
+    m_Context.DestroyQueryPool(m_OcclusionQueryPool);
+    m_Context.DestroyQueryPool(m_PipelineQueryPool);
+
     m_ImGuiRenderer.Shutdown(m_Context);
+    
+    //Destroy application resources
+
+    m_Context.DestroyPipelineLayout(m_PipelineLayout); 
+    m_Context.DestroyPipeline(m_Pipeline);
 
     for (uint32_t i = 0; i < m_Swapchain.GetImageCount(); i++) {
         m_Context.DestroyFrameBuffer(m_FrameBuffers[i]);
@@ -504,7 +564,7 @@ void HelloTriangleApp::DrawGUI()
 
     if (ImGui::Begin("Application Info", nullptr, flags))
     {
-        ImGui::Text("VKR Samples 01 - Hello Triangle\nRight Click for options.\nEwan Burnett (2024)");
+        ImGui::Text("VKR Samples 01 - Hello Triangle\nRight Click here for more options.\nEwan Burnett (2024)");
         if (bShowApplicationStats) {
             ImGui::Separator();
             ImGui::Text("Frame Count: %d", m_FrameCount);
@@ -513,12 +573,15 @@ void HelloTriangleApp::DrawGUI()
             ImGui::Text("Runtime (s): %f", m_RunTime);
         }
 
-        if (bShowVulkanStats) { //TODO: Pipeline Statistics Queries
+        if (bShowVulkanStats) {
             ImGui::Separator();
-            ImGui::Text("Vertex Shader Invocations: %d", 0);
-            ImGui::Text("Fragment Shader Invocations: %d", 0);
-            ImGui::Text("Input Vertices: %d", 0);
-            ImGui::Text("Input Primitives: %d", 0);
+            ImGui::Text("Vertex Shader Invocations: %d", m_PipelineStatistics.at(2));
+            ImGui::Text("Fragment Shader Invocations: %d", m_PipelineStatistics.at(5));
+            ImGui::Text("Input Vertices: %d", m_PipelineStatistics.at(0));
+            ImGui::Text("Input Primitives: %d", m_PipelineStatistics.at(1));
+            ImGui::Text("Clipping Primitives: %d", m_PipelineStatistics.at(4));
+            ImGui::Text("Clipping Invocations: %d", m_PipelineStatistics.at(3));
+            ImGui::Text("Samples: %d", m_OcclusionStatistics.at(0));
         }
 
         if (ImGui::BeginPopupContextWindow())
@@ -529,6 +592,7 @@ void HelloTriangleApp::DrawGUI()
 
             ImGui::EndPopup();
         }
+
     }
     ImGui::End();
 

@@ -658,3 +658,25 @@ void VKR::VkContext::DestroyFrameBuffer(VkFramebuffer& frameBuffer) const
     EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyFramebuffer(m_Device, frameBuffer, nullptr);
 }
+
+VkResult VKR::VkContext::CreateQueryPool(const VkQueryType type, const uint32_t count, const VkQueryPipelineStatisticFlags pipelineStatistics, VkQueryPool* pPool)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+
+    const VkQueryPoolCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+        nullptr,
+        0,
+        type,
+        count,
+        pipelineStatistics
+    };
+
+    return vkCreateQueryPool(m_Device, &createInfo, nullptr, pPool);
+}
+
+void VKR::VkContext::DestroyQueryPool(VkQueryPool& pool)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkDestroyQueryPool(m_Device, pool, nullptr); 
+}
