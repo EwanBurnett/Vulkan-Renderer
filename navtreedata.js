@@ -25,12 +25,10 @@
 var NAVTREE =
 [
   [ "Vulkan Renderer", "index.html", [
-    [ "Vulkan Renderer", "md_ReadMe.html", [
-      [ "Dependencies", "md_ReadMe.html#autotoc_md1", [
-        [ "External Libraries", "md_ReadMe.html#autotoc_md2", null ]
-      ] ],
-      [ "Build Instructions", "md_ReadMe.html#autotoc_md3", null ]
+    [ "Dependencies", "index.html#autotoc_md1", [
+      [ "External Libraries", "index.html#autotoc_md2", null ]
     ] ],
+    [ "Build Instructions", "index.html#autotoc_md3", null ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
@@ -48,7 +46,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "File_8h.html",
-"structVKR_1_1Math_1_1Vector2.html#a1730bbef7b8cd3657c15572b067d2071"
+"structVKR_1_1Math_1_1Vector2.html#a1ea1784ee6b883c83322b9e4ac951efa"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

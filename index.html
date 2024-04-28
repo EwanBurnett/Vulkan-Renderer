@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Vulkan Renderer: Main Page</title>
+<title>Vulkan Renderer: Vulkan Renderer</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -83,11 +83,39 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </iframe>
 </div>
 
-<div class="header">
+<div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">Vulkan Renderer Documentation</div>  </div>
+<div class="title">Vulkan Renderer </div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p><a class="anchor" id="md_ReadMe"></a>A 3D Renderer written using C++ to explore the Vulkan API.</p>
+<h1><a class="anchor" id="autotoc_md1"></a>
+Dependencies</h1>
+<ul>
+<li>A C++ 17 Compiler</li>
+<li><a href="https://cmake.org">CMake 3.14</a> or higher</li>
+<li>The latest version of the <a href="https://www.lunarg.com/vulkan-sdk/">Vulkan SDK</a></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md2"></a>
+External Libraries</h2>
+<p>in addition to the above, as the following libraries are used, their dependencies for your platform must also be installed:</p><ul>
+<li><a href="https://github.com/glfw/glfw.git">GLFW 3.4</a></li>
+<li><a href="https://github.com/ocornut/imgui.git">ImGui v1.90.5</a></li>
+<li><a href="https://github.com/assimp/assimp.git">Assimp v5.4.0</a></li>
+<li><a href="https://github.com/nothings/stb.git">STB</a></li>
+<li><a href="https://github.com/yse/easy_profiler.git">Easy Profiler v2.1.0</a></li>
+<li><a href="https://github.com/dougbinks/enkiTS.git">EnkiTS v1.11</a></li>
+<li><a href="https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git">Vulkan Memory Allocator v3.0.1</a></li>
+</ul>
+<p>Documentation CSS from <a href="https://jothepro.github.io/doxygen-awesome-css/">https://jothepro.github.io/doxygen-awesome-css/</a></p>
+<h1><a class="anchor" id="autotoc_md3"></a>
+Build Instructions</h1>
+<p>Clone the repository as follows </p><div class="fragment"><div class="line">git clone https://github.com/EwanBurnett/Vulkan-Renderer.git</div>
+<div class="line">cd Vulkan-Renderer</div>
+</div><!-- fragment --><p>Generate project files via CMake </p><div class="fragment"><div class="line">mkdir build &amp;&amp; cd build</div>
+<div class="line">cmake .. </div>
+<div class="line"># Build using your platform&#39;s build system </div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
