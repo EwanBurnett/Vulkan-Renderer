@@ -1,4 +1,8 @@
-# VKR Sample 01 - Hello Triangle
+Samples                        {#subpage}
+===========
+
+# 01 - Hello Triangle
+
 
 ## Controls
 Right click within the Overlay to open an options menu. 
