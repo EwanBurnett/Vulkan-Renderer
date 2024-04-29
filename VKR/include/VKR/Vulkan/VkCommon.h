@@ -8,7 +8,7 @@
 */
 
 
-#include <Vulkan/vulkan.h>
+#include <vulkan/vulkan.h>
 #include "../Types.h"
 #include <vk_mem_alloc.h>
 

@@ -4,7 +4,7 @@
 #include <VKR/Timer.h>
 #include <VKR/Vulkan/VkContext.h>
 #include <VKR/Vulkan/VkSwapchain.h>
-#include <VKR/Vulkan/VkimGui.h>
+#include <VKR/Vulkan/VkImGui.h>
 
 namespace Samples
 {
