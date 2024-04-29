@@ -29,9 +29,20 @@ var NAVTREE =
       [ "External Libraries", "index.html#autotoc_md2", null ]
     ] ],
     [ "Build Instructions", "index.html#autotoc_md3", null ],
+    [ "Samples", "subpage.html", [
+      [ "01 - Hello Triangle", "subpage.html#autotoc_md4", [
+        [ "Build Instructions", "subpage.html#autotoc_md5", null ],
+        [ "Features", "subpage.html#autotoc_md6", [
+          [ "Profiling via EasyProfiler", "subpage.html#autotoc_md7", null ],
+          [ "MultiSample Anti-Aliasing", "subpage.html#autotoc_md8", null ]
+        ] ],
+        [ "Resource Sources", "subpage.html#autotoc_md9", null ]
+      ] ]
+    ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ]
@@ -45,8 +56,8 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"File_8h.html",
-"structVKR_1_1Math_1_1Vector2.html#a1ea1784ee6b883c83322b9e4ac951efa"
+"01-Hello-Triangle_8cpp.html",
+"classVKR_1_1VkSwapchain.html#a725c96ee097b59c4cc0f6e38f5b7e252"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

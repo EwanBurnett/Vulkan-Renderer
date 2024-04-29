@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['identity_18',['Identity',['../structVKR_1_1Math_1_1Matrix4x4.html#a77aca6cb89b5b161c34ac9b5caa2a762',1,'VKR::Math::Matrix4x4']]],
-  ['init_19',['Init',['../VKR_8h.html#a43fa6e130ffb2882459936c504e44522',1,'VKR']]]
+  ['get_19',['Get',['../classVKR_1_1RNG.html#a73df717cc5c64eafb79a95bf1901e0f1',1,'VKR::RNG']]],
+  ['glfwhandle_20',['GLFWHandle',['../classVKR_1_1Window.html#af562ed02c126156cb7bfae30ab9473af',1,'VKR::Window']]]
 ];

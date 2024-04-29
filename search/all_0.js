@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['addshaderstage_0',['AddShaderStage',['../classVKR_1_1VkPipelineBuilder.html#ae8e933df1cdfef0f1fc81b9e33265708',1,'VKR::VkPipelineBuilder']]]
+  ['01_2dhello_2dtriangle_2ecpp_0',['01-Hello-Triangle.cpp',['../01-Hello-Triangle_8cpp.html',1,'']]]
 ];

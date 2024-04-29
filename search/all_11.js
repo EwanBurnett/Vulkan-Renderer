@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['window_74',['Window',['../classVKR_1_1Window.html',1,'VKR']]],
-  ['window_2eh_75',['Window.h',['../Window_8h.html',1,'']]],
-  ['writefile_76',['WriteFile',['../File_8h.html#ab9b138eb433b2b9c9cd4e164cbff1e1b',1,'VKR::IO']]]
+  ['up_60',['Up',['../structVKR_1_1Math_1_1Vector2.html#ae871e8be917f60ee279475aaef064d49',1,'VKR::Math::Vector2::Up()'],['../structVKR_1_1Math_1_1Vector3.html#a0c8e2ca623ceb3010b6141e7a93f95f8',1,'VKR::Math::Vector3::Up()']]]
 ];

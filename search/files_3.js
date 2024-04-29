@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['random_2eh_93',['Random.h',['../Random_8h.html',1,'']]]
+  ['logger_2eh_102',['Logger.h',['../Logger_8h.html',1,'']]]
 ];

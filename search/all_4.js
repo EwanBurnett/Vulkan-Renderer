@@ -1,6 +1,11 @@
 var searchData=
 [
-  ['file_2eh_13',['File.h',['../File_8h.html',1,'']]],
-  ['fileexists_14',['FileExists',['../File_8h.html#afce930ab92d76dfbfb6d08c4094ac73f',1,'VKR::IO']]],
-  ['forwards_15',['Forwards',['../structVKR_1_1Math_1_1Vector3.html#a0c842500b8b7796355b91098df8022e1',1,'VKR::Math::Vector3']]]
+  ['degtorad_8',['DegToRad',['../Maths_8h.html#ac999cc45f5070757d2933d0059238e6e',1,'VKR::Math']]],
+  ['deltatime_9',['DeltaTime',['../classVKR_1_1Timer.html#a1dc119ab636add9bbbf2947ffedecc97',1,'VKR::Timer']]],
+  ['demoapp_10',['DemoApp',['../classSamples_1_1DemoApp.html',1,'Samples']]],
+  ['demoapp_2eh_11',['DemoApp.h',['../DemoApp_8h.html',1,'']]],
+  ['destroy_12',['Destroy',['../classVKR_1_1Window.html#ae801a4aee249eb97fc1ad995535f9edc',1,'VKR::Window']]],
+  ['dot_13',['Dot',['../structVKR_1_1Math_1_1Vector2.html#a34a9d9b85dee4412bb8f0c7defb17414',1,'VKR::Math::Vector2::Dot()'],['../structVKR_1_1Math_1_1Vector3.html#aefeb4ac901ec63cadfcbb092385552f6',1,'VKR::Math::Vector3::Dot()'],['../structVKR_1_1Math_1_1Vector4.html#a7b0a24e1295a66fc516a7bb27782d16b',1,'VKR::Math::Vector4::Dot()']]],
+  ['down_14',['Down',['../structVKR_1_1Math_1_1Vector2.html#afac40d12e241ac1addb45c81ec1b47a6',1,'VKR::Math::Vector2::Down()'],['../structVKR_1_1Math_1_1Vector3.html#a8786546f78c3fac6dd85d2bafc46f167',1,'VKR::Math::Vector3::Down()']]],
+  ['duration_15',['Duration',['../classVKR_1_1Timer.html#ab698b933973fadf5e5570ee795ca7f60',1,'VKR::Timer']]]
 ];

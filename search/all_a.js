@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['orthonormalize_30',['Orthonormalize',['../Maths_8h.html#a2d1270e105b91450b02468cb91f6e096',1,'VKR::Math']]]
+  ['maths_2eh_30',['Maths.h',['../Maths_8h.html',1,'']]],
+  ['matrix_2eh_31',['Matrix.h',['../Matrix_8h.html',1,'']]],
+  ['matrix4x4_32',['Matrix4x4',['../structVKR_1_1Math_1_1Matrix4x4.html',1,'VKR::Math']]]
 ];

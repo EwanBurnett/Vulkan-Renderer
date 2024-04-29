@@ -1,5 +1,9 @@
 var annotated_dup =
 [
+    [ "Samples", null, [
+      [ "HelloTriangleApp", "classSamples_1_1HelloTriangleApp.html", "classSamples_1_1HelloTriangleApp" ],
+      [ "DemoApp", "classSamples_1_1DemoApp.html", "classSamples_1_1DemoApp" ]
+    ] ],
     [ "VKR", null, [
       [ "Math", null, [
         [ "Matrix4x4", "structVKR_1_1Math_1_1Matrix4x4.html", "structVKR_1_1Math_1_1Matrix4x4" ],
@@ -11,6 +15,7 @@ var annotated_dup =
       [ "RNG", "classVKR_1_1RNG.html", "classVKR_1_1RNG" ],
       [ "Timer", "classVKR_1_1Timer.html", "classVKR_1_1Timer" ],
       [ "VkContext", "classVKR_1_1VkContext.html", "classVKR_1_1VkContext" ],
+      [ "VkImGui", "classVKR_1_1VkImGui.html", "classVKR_1_1VkImGui" ],
       [ "VkPipelineBuilder", "classVKR_1_1VkPipelineBuilder.html", "classVKR_1_1VkPipelineBuilder" ],
       [ "VkSwapchain", "classVKR_1_1VkSwapchain.html", "classVKR_1_1VkSwapchain" ],
       [ "Window", "classVKR_1_1Window.html", "classVKR_1_1Window" ]

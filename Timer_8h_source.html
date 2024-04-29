@@ -25,6 +25,7 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="projectlogo"><img alt="Logo" src="VKR_Icon.ico"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Vulkan Renderer
    &#160;<span id="projectnumber">0.1.0.a</span>
@@ -123,7 +124,7 @@ $(document).ready(function(){initNavTree('Timer_8h_source.html',''); initResizab
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> period&gt;</div>
 <div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="classVKR_1_1Timer.html#a1dc119ab636add9bbbf2947ffedecc97">   65</a></span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">double</span> <a class="code" href="classVKR_1_1Timer.html#a1dc119ab636add9bbbf2947ffedecc97">VKR::Timer::DeltaTime</a>()<span class="keyword"> const</span></div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        static_assert(std::chrono::_Is_duration_v&lt;period&gt;, <span class="stringliteral">&quot;Template argument &lt;period&gt; Must be a std::chrono::duration!\n&quot;</span>);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        <span class="comment">//static_assert(std::chrono::_Is_duration_v&lt;period&gt;, &quot;Template argument &lt;period&gt; Must be a std::chrono::duration!\n&quot;);</span></div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="keywordflow">return</span> std::chrono::duration_cast&lt;period&gt;(m_tCurrent - m_tPrevious).count() / (double)period::period::den;</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    }</div>
@@ -132,7 +133,7 @@ $(document).ready(function(){initNavTree('Timer_8h_source.html',''); initResizab
 <div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> period&gt;</div>
 <div class="line"><a name="l00074"></a><span class="lineno"><a class="line" href="classVKR_1_1Timer.html#ab698b933973fadf5e5570ee795ca7f60">   74</a></span>&#160;    <span class="keyword">inline</span> <span class="keywordtype">double</span> <a class="code" href="classVKR_1_1Timer.html#ab698b933973fadf5e5570ee795ca7f60">Timer::Duration</a>()<span class="keyword"> const</span></div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        static_assert(std::chrono::_Is_duration_v&lt;period&gt;, <span class="stringliteral">&quot;Template argument &lt;period&gt; Must be a std::chrono::duration!\n&quot;</span>);</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <span class="comment">//static_assert(std::chrono::_Is_duration_v&lt;period&gt;, &quot;Template argument &lt;period&gt; Must be a std::chrono::duration!\n&quot;);</span></div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        <span class="keywordflow">return</span> m_Duration.count() / (double)period::period::den;</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    }</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;}</div>

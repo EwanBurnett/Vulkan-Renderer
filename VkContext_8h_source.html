@@ -25,6 +25,7 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="projectlogo"><img alt="Logo" src="VKR_Icon.ico"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Vulkan Renderer
    &#160;<span id="projectnumber">0.1.0.a</span>
@@ -180,32 +181,35 @@ $(document).ready(function(){initNavTree('VkContext_8h_source.html',''); initRes
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        VkResult CreateFrameBuffer(<span class="keyword">const</span> VkExtent3D extents, <span class="keyword">const</span> VkRenderPass renderPass, <span class="keyword">const</span> uint32_t numAttachments, <span class="keyword">const</span> VkImageView* pAttachments, VkFramebuffer* pFrameBuffer) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="keywordtype">void</span> DestroyFrameBuffer(VkFramebuffer&amp; frameBuffer) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="preprocessor">#ifdef VKR_DEBUG</span></div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;        <span class="keyword">static</span> VKAPI_ATTR VkBool32 VKAPI_CALL DebugLog(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, <span class="keyword">const</span> VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, <span class="keywordtype">void</span>* pUserData);</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        <span class="keyword">static</span> VKAPI_ATTR VkBool32 VKAPI_CALL DebugReport(VkDebugReportFlagBitsEXT reportFlags, VkDebugReportObjectTypeEXT objectType, uint64_t <span class="keywordtype">object</span>, <span class="keywordtype">size_t</span> location, uint32_t code, <span class="keyword">const</span> <span class="keywordtype">char</span>* pLayerPrefix, <span class="keyword">const</span> <span class="keywordtype">char</span>* pMessage, <span class="keywordtype">void</span>* pUserData);</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;        VkResult CreateDebugUtilsMessengerEXT(<span class="keyword">const</span> VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        VkResult DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT&amp; debugMessenger, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator);</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;        VkResult CreateQueryPool(<span class="keyword">const</span> VkQueryType type, <span class="keyword">const</span> uint32_t count, <span class="keyword">const</span> VkQueryPipelineStatisticFlags pipelineStatistics, VkQueryPool* pPool);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;        <span class="keywordtype">void</span> DestroyQueryPool(VkQueryPool&amp; pool);</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="preprocessor">#ifdef VKR_DEBUG</span></div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;        <span class="keyword">static</span> VKAPI_ATTR VkBool32 VKAPI_CALL DebugLog(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, <span class="keyword">const</span> VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, <span class="keywordtype">void</span>* pUserData);</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        <span class="keyword">static</span> VKAPI_ATTR VkBool32 VKAPI_CALL DebugReport(VkDebugReportFlagBitsEXT reportFlags, VkDebugReportObjectTypeEXT objectType, uint64_t <span class="keywordtype">object</span>, <span class="keywordtype">size_t</span> location, uint32_t code, <span class="keyword">const</span> <span class="keywordtype">char</span>* pLayerPrefix, <span class="keyword">const</span> <span class="keywordtype">char</span>* pMessage, <span class="keywordtype">void</span>* pUserData);</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        VkResult CreateDebugReportCallbackEXT(<span class="keyword">const</span> VkDebugReportCallbackCreateInfoEXT* pCreateInfo, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pDebugReporter);</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        VkResult DestroyDebugReportCallbackEXT(VkDebugReportCallbackEXT&amp; debugReporter, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator);</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        VkInstance m_Instance;</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        VkPhysicalDevice m_PhysicalDevice;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        VkDevice m_Device;</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;<span class="preprocessor">#ifdef VKR_DEBUG</span></div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        VkDebugUtilsMessengerEXT m_DebugLogger;</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        VkDebugReportCallbackEXT m_DebugReporter;</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        VmaAllocator m_Allocator;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    };</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;}</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        VkResult CreateDebugUtilsMessengerEXT(<span class="keyword">const</span> VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        VkResult DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT&amp; debugMessenger, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator);</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        VkResult CreateDebugReportCallbackEXT(<span class="keyword">const</span> VkDebugReportCallbackCreateInfoEXT* pCreateInfo, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pDebugReporter);</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        VkResult DestroyDebugReportCallbackEXT(VkDebugReportCallbackEXT&amp; debugReporter, <span class="keyword">const</span> VkAllocationCallbacks* pAllocator);</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160; </div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;        VkInstance m_Instance;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;        VkPhysicalDevice m_PhysicalDevice;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        VkDevice m_Device;</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;<span class="preprocessor">#ifdef VKR_DEBUG</span></div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        VkDebugUtilsMessengerEXT m_DebugLogger;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;        VkDebugReportCallbackEXT m_DebugReporter;</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;        VmaAllocator m_Allocator;</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    };</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;}</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160; </div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aVkCommon_8h_html"><div class="ttname"><a href="VkCommon_8h.html">VkCommon.h</a></div><div class="ttdoc">Vulkan Common Includes / utilites.</div></div>
 <div class="ttc" id="aclassVKR_1_1VkContext_html"><div class="ttname"><a href="classVKR_1_1VkContext.html">VKR::VkContext</a></div><div class="ttdef"><b>Definition:</b> VkContext.h:13</div></div>
 </div><!-- fragment --></div><!-- contents -->

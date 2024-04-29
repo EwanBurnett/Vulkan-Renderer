@@ -25,6 +25,7 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="projectlogo"><img alt="Logo" src="VKR_Icon.ico"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Vulkan Renderer
    &#160;<span id="projectnumber">0.1.0.a</span>
@@ -110,7 +111,7 @@ $(document).ready(function(){initNavTree('Random_8h_source.html',''); initResiza
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    {</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;        static_assert(std::is_arithmetic&lt;T&gt;(), <span class="stringliteral">&quot;Random Number Type was not Arithmetic!\n&quot;</span>);</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        <span class="keywordflow">if</span> constexpr (std::is_integral&lt;T&gt;()) {</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;            <span class="keyword">static</span> std::uniform_int_distrubution&lt;&gt; range(min, max);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;            <span class="keyword">static</span> std::uniform_int_distribution&lt;&gt; range(min, max);</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;            <span class="keywordflow">return</span> range(m_RNG);</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        }</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        <span class="keywordflow">else</span> <span class="keywordflow">if</span> constexpr (std::is_floating_point&lt;T&gt;()) {</div>

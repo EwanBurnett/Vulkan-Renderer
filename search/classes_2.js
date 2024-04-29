@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rng_79',['RNG',['../classVKR_1_1RNG.html',1,'VKR']]]
+  ['log_86',['Log',['../classVKR_1_1Log.html',1,'VKR']]]
 ];
