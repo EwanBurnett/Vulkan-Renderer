@@ -16,8 +16,8 @@
 
 
 constexpr uint32_t FRAMES_IN_FLIGHT = 3;
-
 constexpr char* PIPELINE_CACHE_PATH = ".cache";
+constexpr VkSampleCountFlagBits SAMPLE_COUNT = VK_SAMPLE_COUNT_4_BIT; 
 
 using namespace VKR;
 
@@ -25,7 +25,7 @@ Samples::HelloTriangleApp::HelloTriangleApp() : DemoApp()
 {
     EASY_FUNCTION();
 
-    m_MSAASamples = VK_SAMPLE_COUNT_4_BIT;
+    m_MSAASamples = SAMPLE_COUNT;
     m_CommandPool = VK_NULL_HANDLE;
     m_FrameInFlight = 0;
     m_ImageIndex = 0;
@@ -40,6 +40,7 @@ Samples::HelloTriangleApp::HelloTriangleApp() : DemoApp()
     m_Viewport = {};
     m_PipelineStatistics = {}; 
     m_OcclusionStatistics = 0; 
+    m_DeviceProperties = {};
 }
 
 
@@ -68,7 +69,7 @@ void Samples::HelloTriangleApp::Init(const VKR::Window& window)
         {
             uint32_t optExtCount = 0;
             auto ext = glfwGetRequiredInstanceExtensions(&optExtCount);
-            for (int i = 0; i < optExtCount; i++) {
+            for (uint32_t i = 0; i < optExtCount; i++) {
                 instanceExtensions.push_back(ext[i]);
             }
         }
@@ -84,6 +85,7 @@ void Samples::HelloTriangleApp::Init(const VKR::Window& window)
         m_Context.CreateDebugReporter();
     }
 #endif
+
     Log::Message("Creating Vulkan Device.\n");
     //Vulkan Device Creation
     {
@@ -96,12 +98,10 @@ void Samples::HelloTriangleApp::Init(const VKR::Window& window)
     #endif
         };
 
-#if VKR_DEBUG
-        VK_CHECK(m_Context.CreateDebugLogger());
-        VK_CHECK(m_Context.CreateDebugReporter());
-#endif
-
         VK_CHECK(m_Context.SelectPhysicalDevice());
+
+        //Retrieve physical device properties
+        vkGetPhysicalDeviceProperties(m_Context.GetPhysicalDevice(), &m_DeviceProperties); 
 
         m_QueueFamilyIndex = VkHelpers::FindQueueFamilyIndex(m_Context.GetPhysicalDevice(), VK_QUEUE_GRAPHICS_BIT);
         float queuePriorities[] = { 1.0f };
@@ -149,6 +149,7 @@ void Samples::HelloTriangleApp::Init(const VKR::Window& window)
     {
         VkPipelineCacheCreateInfo pipelineCacheCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
         if (VKR::IO::FileExists(PIPELINE_CACHE_PATH)) {
+            Log::Message("Loading Pipeline Cache.\n"); 
             std::vector<char> pipelineCacheBlob;
             VKR::IO::ReadFile(PIPELINE_CACHE_PATH, pipelineCacheBlob);
             pipelineCacheCreateInfo.initialDataSize = pipelineCacheBlob.size();
@@ -210,15 +211,17 @@ void Samples::HelloTriangleApp::Init(const VKR::Window& window)
         m_Context.DestroyShaderModule(fragmentShaderModule);
 
         //Write the Pipeline Cache to disk 
+        if(!VKR::IO::FileExists(PIPELINE_CACHE_PATH))
         {
+            Log::Message("Saving Pipeline Cache.\n"); 
             uint64_t cacheDataSize = 0;
             vkGetPipelineCacheData(m_Context.GetDevice(), pipelineCache, &cacheDataSize, nullptr);
             std::vector<char> cacheData(cacheDataSize);
             vkGetPipelineCacheData(m_Context.GetDevice(), pipelineCache, &cacheDataSize, cacheData.data());
 
             VKR::IO::WriteFile(PIPELINE_CACHE_PATH, cacheData.data(), cacheData.size());
-            vkDestroyPipelineCache(m_Context.GetDevice(), pipelineCache, nullptr);
         }
+        vkDestroyPipelineCache(m_Context.GetDevice(), pipelineCache, nullptr);
     }
 
     Log::Message("Creating Query Pools.\n");
@@ -462,6 +465,7 @@ void Samples::HelloTriangleApp::DrawGUI()
     //GUI control flags
     static bool bShowDemo = false;
     static bool bShowApplicationStats = false;
+    static bool bShowHardwareInfo = false;
     static bool bShowVulkanStats = false;
 
     if (bShowDemo) {
@@ -470,10 +474,11 @@ void Samples::HelloTriangleApp::DrawGUI()
 
     //Render an overlay with application information. 
     ImGuiIO& io = ImGui::GetIO();
+
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     const float padding = 10.0f;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+    ImVec2 work_pos = viewport->WorkPos; 
     ImVec2 work_size = viewport->WorkSize;
     ImVec2 window_pos, window_pos_pivot;
     window_pos.x = work_pos.x + work_size.x - padding;
@@ -494,7 +499,28 @@ void Samples::HelloTriangleApp::DrawGUI()
             ImGui::Text("FPS: %d", m_FPS);
             ImGui::Text("Runtime (s): %f", m_RunTime);
         }
-
+        if (bShowHardwareInfo) {
+            ImGui::Separator(); 
+            ImGui::Text("%s", m_DeviceProperties.deviceName);
+            char* deviceType = "Other"; 
+            switch (m_DeviceProperties.deviceType) {
+            case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: 
+                deviceType = "Integrated GPU";
+                break; 
+            case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: 
+                deviceType = "Discrete GPU"; 
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: 
+                deviceType = "Virtual GPU"; 
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_CPU: 
+                deviceType = "CPU"; 
+                break; 
+            default: 
+                break; 
+            }
+            ImGui::Text("%s", deviceType);
+        }
         if (bShowVulkanStats) {
             ImGui::Separator();
             ImGui::Text("Vertex Shader Invocations: %d", m_PipelineStatistics.vertexShaderInvocations);
@@ -509,6 +535,7 @@ void Samples::HelloTriangleApp::DrawGUI()
         if (ImGui::BeginPopupContextWindow())
         {
             ImGui::MenuItem("Show Application Statistics", nullptr, &bShowApplicationStats);
+            ImGui::MenuItem("Show Hardware Information", nullptr, &bShowHardwareInfo);
             ImGui::MenuItem("Show Vulkan Statistics", nullptr, &bShowVulkanStats);
             ImGui::MenuItem("Show ImGui Demo", nullptr, &bShowDemo);
 
@@ -560,7 +587,6 @@ void Samples::HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCo
     m_Swapchain.Create(m_Context, &window, m_QueueFamilyIndex);
     //Create the Render Pass, and its resources
     {
-
         m_Viewport.x = 0;
         m_Viewport.y = 0; // -static_cast<float>(extents.height);
         m_Viewport.width = (float)extents.width;
@@ -671,7 +697,7 @@ void Samples::HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCo
     {
         //Retrieve image view references for our colour attachments
         m_FrameBuffers.resize(m_Swapchain.GetImageCount());
-        for (int i = 0; i < m_Swapchain.GetImageCount(); i++) {
+        for (uint32_t i = 0; i < m_Swapchain.GetImageCount(); i++) {
             VkImageView attachments[3] = { m_RenderTargets[0].view, m_RenderTargets[1].view ,m_Swapchain.GetImageViews()[i] };
             m_Context.CreateFrameBuffer({ extents.width, extents.height, 1 }, m_RenderPass, 3, attachments, &m_FrameBuffers[i]);
         }

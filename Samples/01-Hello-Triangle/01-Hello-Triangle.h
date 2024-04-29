@@ -106,5 +106,7 @@ namespace Samples
         PipelineStatistics m_PipelineStatistics;
         VkQueryPool m_OcclusionQueryPool;
         uint64_t m_OcclusionStatistics;
+
+        VkPhysicalDeviceProperties m_DeviceProperties; 
     };
 }
