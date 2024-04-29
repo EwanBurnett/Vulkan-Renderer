@@ -5,177 +5,23 @@
 *   @date 2024/04/28
 */
 
-#include <DemoApp.h>
-#include <vector> 
-
-#include <VKR/VKR.h> 
-#include <VKR/Window.h>
-#include <VKR/Vulkan/VkContext.h>
-#include <VKR/Vulkan/VkSwapchain.h>
+#include "01-Hello-Triangle.h"
 #include <VKR/Vulkan/VkHelpers.h>
-#include <VKR/Vulkan/VkimGui.h>
 #include <VKR/Vulkan/VkPipelineBuilder.h>
 #include <VKR/Vulkan/VkInit.h>
 #include <VKR/File.h>
-#include <VKR/Timer.h>
 #include <VKR/Maths.h>
 #include <VKR/Logger.h>
 #include <easy/profiler.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-constexpr uint32_t WINDOW_WIDTH = 600;
-constexpr uint32_t WINDOW_HEIGHT = 400;
 
 constexpr uint32_t FRAMES_IN_FLIGHT = 3;
 
-constexpr char* PIPELINE_CACHE_PATH = ".pipelinecache";
+constexpr char* PIPELINE_CACHE_PATH = ".cache";
 
 using namespace VKR;
 
-class HelloTriangleApp : public DemoApp {
-private:
-    /**
-     * @brief Wrapper for the resources required for images.
-    */
-    struct ImageResource {
-        VkImage image;
-        VmaAllocation allocation;
-        VkImageView view;
-    };
-
-    /**
-     * @brief Wrapper for buffer resources.
-    */
-    struct BufferResource {
-        VkBuffer buffer;
-        VmaAllocation allocation;
-    };
-
-    /**
-     * @brief Storage class for Pipeline Statistics
-    */
-    struct PipelineStatistics
-    {
-        uint64_t inputAssemblyVertices;
-        uint64_t inputAssemblyPrimitives;
-        uint64_t vertexShaderInvocations;
-        uint64_t geometryShaderInvocations;
-        uint64_t geometryShaderPrimitives;
-        uint64_t clippingInvocations;
-        uint64_t clippingOutputPrimitives;
-        uint64_t fragmentShaderInvocations;
-        uint64_t tessellationControlShaderPatches;
-        uint64_t tessellationEvaluationShaderInvocations;
-        uint64_t computeShaderInvocations;
-    };
-
-public:
-    HelloTriangleApp();
-
-    // Inherited via DemoApp
-    virtual void Init(const VKR::Window& window) override;
-    virtual void Update() override;
-    virtual void FixedUpdate() override;
-    virtual void BeginFrame() override;
-    virtual void EndFrame() override;
-    virtual void Shutdown() override;
-
-private:
-    void UpdateFrameCounter();
-    void Synchronize();
-
-    void DrawGUI();
-
-    void CreateColourRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource);
-    void CreateDepthRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource);
-
-    void DestroyImageResource(ImageResource& resource);
-
-    void CreateSwapchain(const Window& window, VkSampleCountFlagBits samples);
-
-private:
-    Timer m_Timer;
-
-    VkContext m_Context;
-    VkSwapchain m_Swapchain;
-
-    VkQueue m_Queue;
-    uint32_t m_QueueFamilyIndex;
-
-    uint64_t m_FrameInFlight;
-    uint32_t m_ImageIndex;
-
-    std::vector<VkFence> m_fFrameReady;
-    std::vector<VkSemaphore> m_sImageAvailable;
-    std::vector<VkSemaphore> m_sRenderFinished;
-
-    VkCommandPool m_CommandPool;
-    std::vector<VkCommandBuffer> m_Commands;
-
-    VkRenderPass m_RenderPass;
-
-    VkSampleCountFlagBits m_MSAASamples;
-    std::vector<ImageResource> m_RenderTargets;
-    std::vector<VkFramebuffer> m_FrameBuffers;
-
-    VkPipelineLayout m_PipelineLayout;
-    VkPipeline m_Pipeline;
-
-    VkImGui m_ImGuiRenderer;
-
-    VkViewport m_Viewport;
-    VkRect2D m_Scissor;
-
-    VkQueryPool m_PipelineQueryPool;
-    PipelineStatistics m_PipelineStatistics;
-    VkQueryPool m_OcclusionQueryPool;
-    uint64_t m_OcclusionStatistics;
-};
-
-
-int main() {
-    //Initialize the Application. 
-    VKR::Init();
-
-    //EASY_PROFILER_ENABLE;
-
-    //Create a Window. 
-    Window window;
-    window.Create("VKR Sample 01 - Hello Triangle", WINDOW_WIDTH, WINDOW_HEIGHT);
-    //Set the window icon.
-    {
-        GLFWimage icon;
-        icon.pixels = stbi_load("Data/VKR_Icon.png", &icon.width, &icon.height, nullptr, 0);
-        glfwSetWindowIcon(window.GLFWHandle(), 1, &icon);
-    }
-
-    HelloTriangleApp demoApp;
-    demoApp.Init(window);
-
-    //Run the Render Loop
-    while (window.PollEvents()) {
-        demoApp.BeginFrame();
-
-        demoApp.Update();
-        demoApp.FixedUpdate();
-
-        demoApp.EndFrame();
-    }
-    Log::Print("\n");   //Print a newline for correct log output. 
-
-    window.Hide();
-
-    demoApp.Shutdown();
-    window.Destroy();
-
-    VKR::Shutdown();
-    return 0;
-}
-
-
-HelloTriangleApp::HelloTriangleApp() : DemoApp()
+Samples::HelloTriangleApp::HelloTriangleApp() : DemoApp()
 {
     EASY_FUNCTION();
 
@@ -192,11 +38,12 @@ HelloTriangleApp::HelloTriangleApp() : DemoApp()
     m_RenderPass = VK_NULL_HANDLE;
     m_Scissor = {};
     m_Viewport = {};
-
+    m_PipelineStatistics = {}; 
+    m_OcclusionStatistics = 0; 
 }
 
 
-void HelloTriangleApp::Init(const VKR::Window& window)
+void Samples::HelloTriangleApp::Init(const VKR::Window& window)
 {
     EASY_FUNCTION();
     Log::Message("Initializing Application...\n");
@@ -401,7 +248,7 @@ void HelloTriangleApp::Init(const VKR::Window& window)
     Log::Message("Application Initialization complete in %fms!\n", initTimer.Duration());
 }
 
-void HelloTriangleApp::Update()
+void Samples::HelloTriangleApp::Update()
 {
     EASY_FUNCTION();
 
@@ -418,7 +265,7 @@ void HelloTriangleApp::Update()
             nullptr,
             m_RenderPass,
             m_FrameBuffers[m_ImageIndex],
-            {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT},
+            {0, 0, 600, 400},   //TODO: Hook in Swapchain Extents
             3,
             clearValues
         };
@@ -436,12 +283,12 @@ void HelloTriangleApp::Update()
     vkCmdEndRenderPass(m_Commands[m_FrameInFlight]);
 }
 
-void HelloTriangleApp::FixedUpdate()
+void Samples::HelloTriangleApp::FixedUpdate()
 {
     EASY_FUNCTION();
 }
 
-void HelloTriangleApp::BeginFrame()
+void Samples::HelloTriangleApp::BeginFrame()
 {
     EASY_FUNCTION();
     UpdateFrameCounter();
@@ -470,7 +317,7 @@ void HelloTriangleApp::BeginFrame()
     vkCmdBeginQuery(m_Commands[m_FrameInFlight], m_OcclusionQueryPool, 0, 0);
 }
 
-void HelloTriangleApp::EndFrame()
+void Samples::HelloTriangleApp::EndFrame()
 {
     EASY_FUNCTION();
 
@@ -535,7 +382,7 @@ void HelloTriangleApp::EndFrame()
     m_FrameCount++; //Update our internal frame counter. 
 }
 
-void HelloTriangleApp::Shutdown()
+void Samples::HelloTriangleApp::Shutdown()
 {
     EASY_FUNCTION();
 
@@ -583,7 +430,7 @@ void HelloTriangleApp::Shutdown()
     m_Context.DestroyInstance();
 }
 
-void HelloTriangleApp::UpdateFrameCounter()
+void Samples::HelloTriangleApp::UpdateFrameCounter()
 {
     EASY_FUNCTION();
 
@@ -598,7 +445,7 @@ void HelloTriangleApp::UpdateFrameCounter()
     m_FrameInFlight = m_FrameCount % FRAMES_IN_FLIGHT;
 }
 
-void HelloTriangleApp::Synchronize()
+void Samples::HelloTriangleApp::Synchronize()
 {
     EASY_FUNCTION();
     //Wait on a fence for the next frame to be available for processing.
@@ -607,7 +454,7 @@ void HelloTriangleApp::Synchronize()
 
 }
 
-void HelloTriangleApp::DrawGUI()
+void Samples::HelloTriangleApp::DrawGUI()
 {
     EASY_FUNCTION();
     m_ImGuiRenderer.BeginFrame();
@@ -676,7 +523,7 @@ void HelloTriangleApp::DrawGUI()
     m_ImGuiRenderer.Draw(&m_Commands[m_FrameInFlight]);
 }
 
-void HelloTriangleApp::CreateColourRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource)
+void Samples::HelloTriangleApp::CreateColourRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource)
 {
     EASY_FUNCTION();
     m_Context.CreateImage(VK_IMAGE_TYPE_2D, { extents.width, extents.height, 1 }, MSAASamples, format, VK_IMAGE_TILING_OPTIMAL, usage, VMA_MEMORY_USAGE_AUTO, 0, &pRenderTargetResource->allocation, &pRenderTargetResource->image);
@@ -684,7 +531,7 @@ void HelloTriangleApp::CreateColourRenderTarget(const VkExtent2D extents, const 
     m_Context.CreateImageView(pRenderTargetResource->image, format, VK_IMAGE_ASPECT_COLOR_BIT, &pRenderTargetResource->view);
 }
 
-void HelloTriangleApp::CreateDepthRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource)
+void Samples::HelloTriangleApp::CreateDepthRenderTarget(const VkExtent2D extents, const VkFormat format, const VkImageUsageFlagBits usage, const VkSampleCountFlagBits MSAASamples, ImageResource* pRenderTargetResource)
 {
     EASY_FUNCTION();
     m_Context.CreateImage(VK_IMAGE_TYPE_2D, { extents.width, extents.height, 1 }, MSAASamples, format, VK_IMAGE_TILING_OPTIMAL, usage, VMA_MEMORY_USAGE_AUTO, 0, &pRenderTargetResource->allocation, &pRenderTargetResource->image);
@@ -692,25 +539,27 @@ void HelloTriangleApp::CreateDepthRenderTarget(const VkExtent2D extents, const V
     m_Context.CreateImageView(pRenderTargetResource->image, format, VK_IMAGE_ASPECT_DEPTH_BIT, &pRenderTargetResource->view);
 }
 
-void HelloTriangleApp::DestroyImageResource(ImageResource& resource)
+void Samples::HelloTriangleApp::DestroyImageResource(ImageResource& resource)
 {
     EASY_FUNCTION();
     m_Context.DestroyImageView(resource.view);
     m_Context.DestroyImage(resource.image, resource.allocation);
 }
 
-void HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCountFlagBits samples)
+void Samples::HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCountFlagBits samples)
 {
     EASY_FUNCTION();
     Log::Message("Creating Swapchain.\n");
     //TODO: Release old resources if present. 
+
+    const VkExtent2D extents = {
+        window.GetWidth(),
+        window.GetHeight()
+    };
+
     m_Swapchain.Create(m_Context, &window, m_QueueFamilyIndex);
     //Create the Render Pass, and its resources
     {
-        const VkExtent2D extents = {
-            window.GetWidth(),
-            window.GetHeight()
-        };
 
         m_Viewport.x = 0;
         m_Viewport.y = 0; // -static_cast<float>(extents.height);
@@ -744,7 +593,7 @@ void HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCountFlagBi
 
             attachmentDescs[1] = {
                 0,
-                VKR::VkHelpers::FindDepthFormat(m_Context.GetPhysicalDevice()),
+                VkHelpers::FindDepthFormat(m_Context.GetPhysicalDevice()),
                 samples,
                 VK_ATTACHMENT_LOAD_OP_CLEAR,
                 VK_ATTACHMENT_STORE_OP_STORE,
@@ -824,7 +673,7 @@ void HelloTriangleApp::CreateSwapchain(const Window& window, VkSampleCountFlagBi
         m_FrameBuffers.resize(m_Swapchain.GetImageCount());
         for (int i = 0; i < m_Swapchain.GetImageCount(); i++) {
             VkImageView attachments[3] = { m_RenderTargets[0].view, m_RenderTargets[1].view ,m_Swapchain.GetImageViews()[i] };
-            m_Context.CreateFrameBuffer({ WINDOW_WIDTH, WINDOW_HEIGHT, 1 }, m_RenderPass, 3, attachments, &m_FrameBuffers[i]);
+            m_Context.CreateFrameBuffer({ extents.width, extents.height, 1 }, m_RenderPass, 3, attachments, &m_FrameBuffers[i]);
         }
     }
 

@@ -1,4 +1,4 @@
-project("Projects")
+project("Samples")
 
 add_subdirectory("Shared")
 
