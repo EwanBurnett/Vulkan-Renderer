@@ -8,6 +8,7 @@
 */
 #include <limits>
 #include <cmath>
+#include <cfloat>
 #include "Maths/Vector2.h"
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
@@ -86,7 +87,7 @@ namespace VKR {
         template <typename T>
         inline constexpr T RadToDeg(const T& radians) {
             static_assert(std::is_arithmetic<T>(), "Error: T is not Arithmetic!\n");
-            return degrees * Math::Rad2Deg;
+            return radians * Math::Rad2Deg;
         }
 
 

@@ -64,7 +64,7 @@ namespace VKR {
     template<typename period>
     inline double VKR::Timer::DeltaTime() const
     {
-        static_assert(std::chrono::_Is_duration_v<period>, "Template argument <period> Must be a std::chrono::duration!\n");
+        //static_assert(std::chrono::_Is_duration_v<period>, "Template argument <period> Must be a std::chrono::duration!\n");
 
         return std::chrono::duration_cast<period>(m_tCurrent - m_tPrevious).count() / (double)period::period::den;
     }
@@ -73,7 +73,7 @@ namespace VKR {
     template<typename period>
     inline double Timer::Duration() const
     {
-        static_assert(std::chrono::_Is_duration_v<period>, "Template argument <period> Must be a std::chrono::duration!\n");
+        //static_assert(std::chrono::_Is_duration_v<period>, "Template argument <period> Must be a std::chrono::duration!\n");
         return m_Duration.count() / (double)period::period::den;
     }
 }

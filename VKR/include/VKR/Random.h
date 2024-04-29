@@ -40,7 +40,7 @@ namespace VKR {
     {
         static_assert(std::is_arithmetic<T>(), "Random Number Type was not Arithmetic!\n");
         if constexpr (std::is_integral<T>()) {
-            static std::uniform_int_distrubution<> range(min, max);
+            static std::uniform_int_distribution<> range(min, max);
             return range(m_RNG);
         }
         else if constexpr (std::is_floating_point<T>()) {

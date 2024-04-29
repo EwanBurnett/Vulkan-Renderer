@@ -1,6 +1,6 @@
 #include "../../include/VKR/Vulkan/VkCommon.h"
 #include "../../include/VKR/Logger.h"
-#include <Vulkan/vk_enum_string_helper.h>
+#include <vulkan/vk_enum_string_helper.h>
 
 const VkResult VKR::VK_CHECK_IMPL(const VkResult result, const char* file, const uint64_t line, const char* function)
 {

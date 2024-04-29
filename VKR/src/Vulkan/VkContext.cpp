@@ -72,22 +72,16 @@ VkResult VKR::VkContext::DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT&
 
 VkResult VKR::VkContext::CreateDebugLogger()
 {
-#ifdef DEBUG
     VkDebugUtilsMessengerCreateInfoEXT createInfo = VkInit::MakeDebugUtilsMessengerCreateInfoEXT();
     createInfo.pfnUserCallback = &VkContext::DebugLog;
     createInfo.pUserData = this;
 
     return CreateDebugUtilsMessengerEXT(&createInfo, nullptr, &m_DebugLogger);
-#else
-    return VK_SUCCESS;
-#endif
 }
 
 void VKR::VkContext::DestroyDebugLogger()
 {
-#ifdef DEBUG
     DestroyDebugUtilsMessengerEXT(m_DebugLogger, nullptr);
-#endif
 }
 
 VkResult VKR::VkContext::CreateDebugReportCallbackEXT(const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pDebugReporter)
@@ -116,28 +110,20 @@ VkResult VKR::VkContext::DestroyDebugReportCallbackEXT(VkDebugReportCallbackEXT&
 
 VkResult VKR::VkContext::CreateDebugReporter()
 {
-#ifdef DEBUG
     VkDebugReportCallbackCreateInfoEXT createInfo = VkInit::MakeDebugReportCallbackCreateInfoEXT();
     createInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)&VkContext::DebugReport;
     createInfo.pUserData = this;
 
     return CreateDebugReportCallbackEXT(&createInfo, nullptr, &m_DebugReporter);
-
-#else
-    return VK_SUCCESS;
-#endif
 }
 
 void VKR::VkContext::DestroyDebugReporter()
 {
-#ifdef DEBUG
     DestroyDebugReportCallbackEXT(m_DebugReporter, nullptr);
-#endif
 }
 
 VkResult VKR::VkContext::DebugSetObjectName(uint64_t objectHandle, VkObjectType objectType, const char* name)
 {
-#ifdef DEBUG
     const VkDebugUtilsObjectNameInfoEXT nameInfo = {
         VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
         nullptr,
@@ -154,9 +140,6 @@ VkResult VKR::VkContext::DebugSetObjectName(uint64_t objectHandle, VkObjectType 
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 
-#else
-    return VK_SUCCESS;
-#endif
 }
 
 #endif
@@ -440,6 +423,43 @@ void VKR::VkContext::DestroyShaderModule(VkShaderModule& shaderModule) const
     vkDestroyShaderModule(m_Device, shaderModule, nullptr);
 }
 
+
+VkResult VKR::VkContext::CreateSampler(VkSampler* pSampler) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+
+    //TODO: Verbose Sampler Configuration
+    VkSamplerCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        nullptr,
+        0,
+        VK_FILTER_LINEAR,
+        VK_FILTER_LINEAR,
+        VK_SAMPLER_MIPMAP_MODE_LINEAR,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        0.0f,
+        VK_FALSE,
+        1,
+        VK_FALSE,
+        VK_COMPARE_OP_ALWAYS,
+        0.0f,
+        0.0f,
+        VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+        VK_FALSE
+    };
+
+    return vkCreateSampler(m_Device, &createInfo, nullptr, pSampler);
+}
+
+void VKR::VkContext::DestroySampler(VkSampler& sampler) const
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkDestroySampler(m_Device, sampler, nullptr); 
+}
+
+
 VkResult VKR::VkContext::CreateCommandPool(const uint32_t queueFamilyIndex, const uint32_t flags, VkCommandPool* pCommandPool) const
 {
     EASY_FUNCTION(profiler::colors::Red500);
@@ -485,7 +505,7 @@ VkResult VKR::VkContext::CreateDescriptorPool(const uint32_t maxSets, const uint
     const VkDescriptorPoolCreateInfo createInfo = {
        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
        nullptr,
-       0,
+       flags,
        maxSets,
        numPoolSizes,
        pPoolSizes
@@ -534,7 +554,7 @@ VkResult VKR::VkContext::AllocateDescriptorSets(const VkDescriptorPool descripto
     return vkAllocateDescriptorSets(m_Device, &allocInfo, pSets);
 }
 
-VkResult VKR::VkContext::CreatePipelineLayout(const uint32_t numDescriptors, const VkDescriptorSetLayout * pDescriptors, const uint32_t numPushConstants, const VkPushConstantRange* pPushConstants, VkPipelineLayout* pPipelineLayout) const
+VkResult VKR::VkContext::CreatePipelineLayout(const uint32_t numDescriptors, const VkDescriptorSetLayout* pDescriptors, const uint32_t numPushConstants, const VkPushConstantRange* pPushConstants, VkPipelineLayout* pPipelineLayout) const
 {
     EASY_FUNCTION(profiler::colors::Red500);
     const VkPipelineLayoutCreateInfo createInfo = {
@@ -620,4 +640,26 @@ void VKR::VkContext::DestroyFrameBuffer(VkFramebuffer& frameBuffer) const
 {
     EASY_FUNCTION(profiler::colors::Red500);
     vkDestroyFramebuffer(m_Device, frameBuffer, nullptr);
+}
+
+VkResult VKR::VkContext::CreateQueryPool(const VkQueryType type, const uint32_t count, const VkQueryPipelineStatisticFlags pipelineStatistics, VkQueryPool* pPool)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+
+    const VkQueryPoolCreateInfo createInfo = {
+        VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+        nullptr,
+        0,
+        type,
+        count,
+        pipelineStatistics
+    };
+
+    return vkCreateQueryPool(m_Device, &createInfo, nullptr, pPool);
+}
+
+void VKR::VkContext::DestroyQueryPool(VkQueryPool& pool)
+{
+    EASY_FUNCTION(profiler::colors::Red500);
+    vkDestroyQueryPool(m_Device, pool, nullptr); 
 }

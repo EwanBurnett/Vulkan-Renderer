@@ -1,6 +1,7 @@
 #include "../../include/VKR/Vulkan/VkHelpers.h"
 #include <vector>   //TODO: Remove all calls to new / delete, replace with std::vector. 
 #include "../../include/VKR/Logger.h"
+#include <cstring>
 
 
 uint32_t VKR::VkHelpers::FindQueueFamilyIndex(VkPhysicalDevice device, VkQueueFlags flags)

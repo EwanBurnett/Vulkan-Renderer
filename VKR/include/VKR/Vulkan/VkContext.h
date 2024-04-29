@@ -97,6 +97,9 @@ namespace VKR {
         VkResult CreateFrameBuffer(const VkExtent3D extents, const VkRenderPass renderPass, const uint32_t numAttachments, const VkImageView* pAttachments, VkFramebuffer* pFrameBuffer) const;
         void DestroyFrameBuffer(VkFramebuffer& frameBuffer) const;
 
+        VkResult CreateQueryPool(const VkQueryType type, const uint32_t count, const VkQueryPipelineStatisticFlags pipelineStatistics, VkQueryPool* pPool);
+        void DestroyQueryPool(VkQueryPool& pool);
+
     private:
 #ifdef VKR_DEBUG
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugLog(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);

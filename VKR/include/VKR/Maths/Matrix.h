@@ -61,7 +61,7 @@ namespace VKR {
              * @return Returns the 4x4 Identity Matrix.
             */
             inline static constexpr Matrix4x4 Identity() {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat;
 
                 for (uint8_t i = 0; i < 16; i++) {
@@ -84,7 +84,7 @@ namespace VKR {
              * @return
             */
             inline static constexpr Matrix4x4 Translation(const Vector3<T> translation) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
                 mat.arr[12] = translation.x;
@@ -95,7 +95,7 @@ namespace VKR {
             }
 
             inline static constexpr Matrix4x4 XRotation(const T radians) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
 
@@ -108,7 +108,7 @@ namespace VKR {
             }
 
             inline static constexpr Matrix4x4 YRotation(const T radians) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
                 mat.arr[0] = cos(radians);
@@ -121,7 +121,7 @@ namespace VKR {
 
 
             inline static constexpr Matrix4x4 ZRotation(const T radians) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
                 mat.arr[0] = cos(radians);
@@ -133,25 +133,25 @@ namespace VKR {
             }
 
             inline static constexpr Matrix4x4 XRotationFromDegrees(const T degrees) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 const T radians = DegToRad(degrees);
                 return Matrix4x4::XRotation(radians);
             }
 
             inline static constexpr Matrix4x4 YRotationFromDegrees(const T degrees) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 const T radians = DegToRad(degrees);
                 return Matrix4x4::YRotation(radians);
             }
 
             inline static constexpr Matrix4x4 ZRotationFromDegrees(const T degrees) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 const T radians = DegToRad(degrees);
                 return Matrix4x4::ZRotation(radians);
             }
 
             inline static constexpr Matrix4x4 Scaling(const Vector3<T> scaling) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
                 mat.arr[0] = scaling.x;
@@ -162,7 +162,7 @@ namespace VKR {
             }
 
             inline static constexpr Matrix4x4 View(Vector3<T> origin, Vector3<T> right = Vector3<T>::Right(), Vector3<T> up = Vector3<T>::Up(), Vector3<T> forwards = Vector3<T>::Forwards()) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Orthonormalize(right, up, forwards);
 
                 Vector3<T> position = {
@@ -184,7 +184,7 @@ namespace VKR {
             }
 
             inline static constexpr Matrix4x4 ProjectionFoVRadians(const double fovRadians, const double aspectRatio, const double nearPlane, const double farPlane) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
                 const double a = tan(fovRadians / 2.0);
@@ -200,13 +200,13 @@ namespace VKR {
             }
 
             inline static constexpr Matrix4x4 ProjectionFoVDegrees(const T fovDegrees, const T aspectRatio, const T nearPlane, const T farPlane) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 const T fovRadians = DegToRad(fovDegrees);
                 return ProjectionFoVRadians(fovRadians, aspectRatio, nearPlane, farPlane);
             }
 
             inline static constexpr Matrix4x4 ProjectionOrthographic(const T top, const T bottom, const T left, const T right, const T farPlane, const T nearPlane) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = Matrix4x4::Identity();
 
                 const T x = (right - left);
@@ -225,7 +225,7 @@ namespace VKR {
 
 
             inline static constexpr Matrix4x4 Transpose(const Matrix4x4& matrix) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
                 Matrix4x4 mat = matrix;
 
                 //Preserve 0, 5, 10, 15
@@ -247,7 +247,7 @@ namespace VKR {
 
 
             inline static constexpr Matrix4x4 Inverse(const Matrix4x4& matrix, bool& inverseExists) {
-                EASY_FUNCTION(profiler::colors::Yellow800);
+                //EASY_FUNCTION(profiler::colors::Yellow800);
 
                 Matrix4x4 inv = {};
                 T det;
