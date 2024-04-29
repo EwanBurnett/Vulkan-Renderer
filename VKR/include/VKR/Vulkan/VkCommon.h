@@ -10,7 +10,7 @@
 
 #include <Vulkan/vulkan.h>
 #include "../Types.h"
-#include <vma/vk_mem_alloc.h>
+#include <vk_mem_alloc.h>
 
 namespace VKR {
     const VkResult VK_CHECK_IMPL(const VkResult result, const char* file, const uint64_t line, const char* function);

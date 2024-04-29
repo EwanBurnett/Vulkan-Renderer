@@ -31,7 +31,7 @@ add_custom_command(
 # Copy application resources to the binary directory on build
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/Data/
         ${CMAKE_CURRENT_BINARY_DIR}/Data/
 )
