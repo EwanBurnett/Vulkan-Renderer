@@ -421,6 +421,8 @@ int main() {
 
     VKR::Math::Matrix4x4<float> viewProjection = VKR::Math::Matrix4x4<>::Identity();
     std::vector<VKR::Math::Matrix4x4<float>> worldMatrices(OBJECT_COUNT);
+            VKR::Math::Vector3f eyePos;
+            VKR::Math::Vector3f eyeDir = VKR::Math::Vector3f::Forwards();
     EASY_END_BLOCK;
 
     while (window.PollEvents()) {
@@ -448,7 +450,6 @@ int main() {
         }
         {
             EASY_BLOCK("Update", profiler::colors::Amber400);
-            static VKR::Math::Vector3f eyePos;
             if (glfwGetKey(window.GLFWHandle(), GLFW_KEY_W)) {
                 eyePos.z += 30.0f * dtms;
             }
@@ -471,7 +472,7 @@ int main() {
             printf("\rPosition: (%f, %f, %f)", eyePos.x, eyePos.y, eyePos.z);
 
             //Compute View-Projection matrix for this frame. 
-            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View(eyePos);  //TODO: Const Operators
+            VKR::Math::Matrix4x4<> v = VKR::Math::Matrix4x4<>::View(eyePos, eyeDir);  //TODO: Const Operators
             VKR::Math::Matrix4x4<> p = VKR::Math::Matrix4x4<>::ProjectionFoVDegrees(90.0, (double)WINDOW_WIDTH / (double)WINDOW_HEIGHT, 0.001, 100000.0);
 
             viewProjection = v * p;
@@ -548,6 +549,10 @@ int main() {
 
                 bool demo = true; 
                 ImGui::ShowDemoWindow(&demo);
+
+                ImGui::Begin("Camera"); 
+                ImGui::DragFloat3("Orientation", eyeDir.arr, 0.025f, -1.0f, 1.0f); 
+                ImGui::End();
 
                 imGuiRenderer.EndFrame();
                 imGuiRenderer.Draw(&cmd);
