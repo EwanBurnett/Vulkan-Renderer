@@ -105,7 +105,7 @@ void Samples::HelloTriangleApp::Init(const VKR::Window& window)
 
         m_QueueFamilyIndex = VkHelpers::FindQueueFamilyIndex(m_Context.GetPhysicalDevice(), VK_QUEUE_GRAPHICS_BIT);
         float queuePriorities[] = { 1.0f };
-        const VkDeviceQueueCreateInfo qci = VkInit::MakeDeviceQueueCreateInfo(0, 1, queuePriorities);
+        const VkDeviceQueueCreateInfo qci = VkInit::MakeDeviceQueueCreateInfo(m_QueueFamilyIndex, 1, queuePriorities);
 
         VkPhysicalDeviceFeatures features = {};
         features.pipelineStatisticsQuery = true;

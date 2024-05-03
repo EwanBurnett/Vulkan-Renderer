@@ -2,7 +2,7 @@ project("02-Mesh-Rendering")
 
 set(CMAKE_CXX_STANDARD 17) 
 
-set(PROJECT_SOURCES "main.cpp" "Renderer/Scene.h" "Renderer/Scene.cpp" "Renderer/Camera.h" "Renderer/Camera.cpp" "Renderer/Importer.h" "Renderer/Importer.cpp" "Renderer/GUI.h" "Renderer/GUI.cpp" "Renderer/Renderer.h" "Renderer/Renderer.cpp")
+set(PROJECT_SOURCES "main.cpp" "Renderer/Scene.h" "Renderer/Scene.cpp" "Renderer/Camera.h" "Renderer/Camera.cpp" "Renderer/Importer.h" "Renderer/Importer.cpp" "Renderer/GUI.h" "Renderer/GUI.cpp" "Renderer/Renderer.h" "Renderer/Renderer.cpp" "Renderer/Helpers.h")
 
 # Build Resource file in windows builds. 
 if(WIN32)
