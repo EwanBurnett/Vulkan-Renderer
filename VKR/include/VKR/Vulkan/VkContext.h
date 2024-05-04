@@ -74,7 +74,7 @@ namespace VKR {
         void DestroyCommandPool(VkCommandPool& commandPool) const;
 
         VkResult AllocateCommandBuffers(const VkCommandPool commandPool, VkCommandBufferLevel level, const uint32_t count, VkCommandBuffer* pCommandBuffers) const;
-        void FreeCommandBuffers(const VkCommandPool commandPool, const uint32_t count, VkCommandBuffer* pCommandBuffers);
+        void FreeCommandBuffers(const VkCommandPool commandPool, const uint32_t count, VkCommandBuffer* pCommandBuffers) const;
 
         VkResult CreateDescriptorPool(const uint32_t maxSets, const uint32_t flags, const uint32_t numPoolSizes, const VkDescriptorPoolSize* pPoolSizes, VkDescriptorPool* pDescriptorPool) const;
         void DestroyDescriptorPool(VkDescriptorPool& descriptorPool) const;

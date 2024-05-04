@@ -2,36 +2,179 @@
 #include <easy/profiler.h>
 #include <VKR/Logger.h>
 #include <VKR/Vulkan/VkHelpers.h>
+#include <VKR/Vulkan/VkPipelineBuilder.h>
+#include <VKR/File.h>
 
-using namespace VKR; 
+using namespace VKR;
 
 void Renderer::Init(const VKR::VkContext& context, const VKR::Window& window)
 {
     m_MSAASamples = VK_SAMPLE_COUNT_4_BIT;  //TODO: MSAA Settings
-    m_QueueFamilyIndex = VkHelpers::FindQueueFamilyIndex(context.GetPhysicalDevice(), VK_QUEUE_GRAPHICS_BIT); 
-    vkGetDeviceQueue(context.GetDevice(), m_QueueFamilyIndex, 0, &m_Queue);  
-    CreateSwapchain(context, window); 
+    m_QueueFamilyIndex = VkHelpers::FindQueueFamilyIndex(context.GetPhysicalDevice(), VK_QUEUE_GRAPHICS_BIT);
+    vkGetDeviceQueue(context.GetDevice(), m_QueueFamilyIndex, 0, &m_Queue);
+    CreateSwapchain(context, window);
 
-    context.CreateSemaphore(&m_Semaphore); //TODO: Proper Synchronization
+    m_GUI.Init(context, window);
+    m_GUI.Hook(context, m_QueueFamilyIndex, m_Queue, m_Swapchain.GetImageCount(), m_RenderPass, m_MSAASamples);
+
+    context.CreateSemaphore(&m_sImageAvailable); //TODO: Proper Synchronization
+    context.CreateSemaphore(&m_sRenderFinished); //TODO: Proper Synchronization
+    context.CreateFence(&m_fFrameReady, true); 
+
+    context.CreateCommandPool(m_QueueFamilyIndex, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, &m_CommandPool);
+
+    //TODO: TEMP RACE CONDITION FIX
+    context.AllocateCommandBuffers(m_CommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1, &m_CommandBuffer);
+
+    //INIT GRID PIPELINE
+    {
+
+        const VkPushConstantRange pushConstants = {
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0,
+            sizeof(VKR::Math::Matrix4x4<float>)
+        };
+
+        VkPipelineLayout graphicsPipelineLayout;
+        context.CreatePipelineLayout(0, nullptr,0, nullptr, &graphicsPipelineLayout);
+
+        VkShaderModule gridVertexShaderModule;
+        {
+            std::vector<char> grid_vs_source;
+            VKR::IO::ReadFile("Data/Shaders/grid.vert.spirv", grid_vs_source);
+            context.CreateShaderModule(grid_vs_source.data(), grid_vs_source.size(), &gridVertexShaderModule);
+        }
+
+        VkShaderModule gridFragmentShaderModule;
+        {
+            std::vector<char> grid_fs_source;
+            VKR::IO::ReadFile("Data/Shaders/grid.frag.spirv", grid_fs_source);
+            context.CreateShaderModule(grid_fs_source.data(), grid_fs_source.size(), &gridFragmentShaderModule);
+        }
+
+        VKR::VkPipelineBuilder gridBuilder;
+        gridBuilder.AddShaderStage(gridVertexShaderModule, VK_SHADER_STAGE_VERTEX_BIT, "main");
+        gridBuilder.AddShaderStage(gridFragmentShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT, "main");
+        gridBuilder.SetVertexInputState(0, nullptr, 0, nullptr);
+        gridBuilder.SetInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false);
+        gridBuilder.SetTessellationState(0);
+        gridBuilder.SetViewportState(1, &m_Viewport, 1, &m_Scissor);
+        gridBuilder.SetRasterizerState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+        gridBuilder.SetMSAAState(m_MSAASamples, false, false);
+        gridBuilder.SetDepthStencilState(false, true, false);
+
+        //gridBuilder.SetBlendState(false, VK_LOGIC_OP_COPY, 1, &blendAttachment);
+        //gridBuilder.SetDynamicState(dynamicStates.size(), dynamicStates.data());
+
+        VkGraphicsPipelineCreateInfo createInfo = gridBuilder.BuildGraphicsPipeline(graphicsPipelineLayout, m_RenderPass, 0);
+
+
+        context.CreateGraphicsPipelines(1, &createInfo, VK_NULL_HANDLE, &m_GridPipeline);
+    }
 }
 
 void Renderer::Shutdown(const VKR::VkContext& context)
 {
-    DestroySwapchain(context); 
+    vkDeviceWaitIdle(context.GetDevice()); 
+
+    context.DestroyFence(m_fFrameReady);
+    context.DestroySemaphore(m_sImageAvailable);
+    context.DestroySemaphore(m_sRenderFinished); 
+    context.DestroyCommandPool(m_CommandPool); 
+
+    m_GUI.Shutdown(context);
+
+    DestroySwapchain(context);
 }
 
 void Renderer::BeginFrame(const VKR::VkContext& context)
 {
-    vkAcquireNextImageKHR(context.GetDevice(), m_Swapchain.GetSwapchain(), UINT64_MAX, m_Semaphore, VK_NULL_HANDLE, &m_ImageIndex);
+    //Synchronize 
+    vkWaitForFences(context.GetDevice(), 1, &m_fFrameReady, VK_TRUE, UINT64_MAX);
+    vkResetFences(context.GetDevice(), 1, &m_fFrameReady);
+
+    vkAcquireNextImageKHR(context.GetDevice(), m_Swapchain.GetSwapchain(), UINT64_MAX, m_sImageAvailable, VK_NULL_HANDLE, &m_ImageIndex);
+
+    //Allocate a new Command Buffer for this frame. 
+    //TODO: Fix Race Condition!
+    context.FreeCommandBuffers(m_CommandPool, 1, &m_CommandBuffer);
+    context.AllocateCommandBuffers(m_CommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1, &m_CommandBuffer);
+
+    //Begin recording into the new command buffer. 
+    const VkCommandBufferBeginInfo beginInfo = {
+               VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+               nullptr,
+               VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+               nullptr
+    };
+    vkBeginCommandBuffer(m_CommandBuffer, &beginInfo); 
+
+
+    //Begin the render pass
+    {
+        const VkClearValue clearValues[3] = {   //TODO: Wrap Render Targets in a struct, and include this. 
+            m_Swapchain.GetColourClearValue(),
+            m_Swapchain.GetDepthStencilClearValue(),
+            m_Swapchain.GetColourClearValue()
+        };
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {
+            VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            nullptr,
+            m_RenderPass,
+            m_FrameBuffers[m_ImageIndex],
+            {0, 0, 1280, 720},   //TODO: Hook in Swapchain Extents
+            3,
+            clearValues
+        };
+        vkCmdBeginRenderPass(m_CommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    //Set Dynamic State
+    vkCmdSetViewport(m_CommandBuffer, 0, 1, &m_Viewport);
+    vkCmdSetScissor(m_CommandBuffer, 0, 1, &m_Scissor);
+
+    //Draw the Grid
+    //DrawGrid(); 
 }
 
 void Renderer::EndFrame()
 {
-    m_Swapchain.Present(m_Queue, m_Semaphore, &m_ImageIndex);
+    m_GUI.Update();
+    m_GUI.Draw(m_CommandBuffer);
+
+    vkCmdEndRenderPass(m_CommandBuffer);
+    vkEndCommandBuffer(m_CommandBuffer); 
+
+    //Submit our work to the GPU.
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+    const VkSubmitInfo submitInfo = {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        nullptr,
+        1,
+        &m_sImageAvailable,
+        waitStages,
+        1,
+        &m_CommandBuffer,
+        1,
+        &m_sRenderFinished
+    };
+    vkQueueSubmit(m_Queue, 1, &submitInfo, m_fFrameReady);
+
+    //Present the Swapchain
+    m_Swapchain.Present(m_Queue, m_sRenderFinished, &m_ImageIndex);
+
 }
 
 void Renderer::Draw(const Scene& scene)
 {
+}
+
+void Renderer::DrawGrid()
+{
+    vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GridPipeline); 
+    vkCmdDraw(m_CommandBuffer, 4, 1, 0, 0); 
 }
 
 void Renderer::CreateSwapchain(const VKR::VkContext& context, const VKR::Window& window)
@@ -164,9 +307,6 @@ void Renderer::CreateSwapchain(const VKR::VkContext& context, const VKR::Window&
             context.CreateFrameBuffer({ extents.width, extents.height, 1 }, m_RenderPass, 3, attachments, &m_FrameBuffers[i]);
         }
     }
-
-    //TODO: Hook in ImGui
-    //m_ImGuiRenderer.Hook(context, m_QueueFamilyIndex, m_Queue, VK_NULL_HANDLE, m_Swapchain.GetImageCount(), m_RenderPass, m_MSAASamples);
 
 }
 

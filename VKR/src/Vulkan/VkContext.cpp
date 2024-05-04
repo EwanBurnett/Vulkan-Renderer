@@ -493,7 +493,7 @@ VkResult VKR::VkContext::AllocateCommandBuffers(const VkCommandPool commandPool,
     return vkAllocateCommandBuffers(m_Device, &allocInfo, pCommandBuffers);
 }
 
-void VKR::VkContext::FreeCommandBuffers(const VkCommandPool commandPool, const uint32_t count, VkCommandBuffer* pCommandBuffers)
+void VKR::VkContext::FreeCommandBuffers(const VkCommandPool commandPool, const uint32_t count, VkCommandBuffer* pCommandBuffers) const
 {
     EASY_FUNCTION(profiler::colors::Red500);
     vkFreeCommandBuffers(m_Device, commandPool, count, pCommandBuffers);

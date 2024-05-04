@@ -21,6 +21,8 @@ public:
     void Draw(const Scene& scene);
 
 private:
+    void DrawGrid(); 
+
     void CreateSwapchain(const VKR::VkContext& context, const VKR::Window& window);
     void DestroySwapchain(const VKR::VkContext& context);
 
@@ -48,9 +50,16 @@ private:
 
     VkRenderPass m_RenderPass;
 
+    VkCommandPool m_CommandPool;
+    VkCommandBuffer m_CommandBuffer; 
 
-    VkSemaphore m_Semaphore; 
+    VkSemaphore m_sRenderFinished; 
+    VkSemaphore m_sImageAvailable; 
+    VkFence m_fFrameReady; 
 
+    GUI m_GUI; 
+
+    VkPipeline m_GridPipeline; 
 
 };
 #endif
